@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const Step1Account = ({ onNext, initialData }) => {
   const [formData, setFormData] = useState(
-    initialData || { email: '', password: '', confirmPassword: '' }
+    initialData || { email: "", password: "", confirmPassword: "" },
   );
 
   const [errors, setErrors] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const handleChange = (e) => {
@@ -16,39 +16,39 @@ const Step1Account = ({ onNext, initialData }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    let newErrors = { email: '', password: '', confirmPassword: '' };
+    let newErrors = { email: "", password: "", confirmPassword: "" };
     let hasError = false;
 
     // Валидация
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
-      newErrors.email = 'E-mail is required.';
+      newErrors.email = "E-mail is required.";
       hasError = true;
     } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Enter a valid e-mail address.';
+      newErrors.email = "Enter a valid e-mail address.";
       hasError = true;
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required.';
+      newErrors.password = "Password is required.";
       hasError = true;
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters.';
+      newErrors.password = "Password must be at least 6 characters.";
       hasError = true;
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password.';
+      newErrors.confirmPassword = "Please confirm your password.";
       hasError = true;
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match.';
+      newErrors.confirmPassword = "Passwords do not match.";
       hasError = true;
     }
 
@@ -62,85 +62,157 @@ const Step1Account = ({ onNext, initialData }) => {
 
   return (
     <>
-      <div className="introduction">
-        <h1 className="introduction-heading">Welcome</h1>
-        <p className="introduction-description">Create your account</p>
+      <div className="mb-5 flex h-[90px] w-full flex-col items-center gap-1.5">
+        <h1 className="m-0 text-center text-[56px] leading-[1.1] font-bold text-ink dark:text-white">
+          Welcome
+        </h1>
+        <p className="m-0 text-center text-base font-normal text-ink dark:text-white">
+          Create your account
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="account-fields" noValidate>
+      <form
+        onSubmit={handleSubmit}
+        className="flex w-[329px] max-w-full flex-col gap-1.5"
+        noValidate
+      >
         {/* E-mail */}
-        <div className="field">
-          <label className="field-label">E-mail</label>
-          <div className={`input-wrapper ${errors.email ? 'error' : ''}`}>
-            <span className="input-icon">
+        <div className="flex flex-col gap-1">
+          <label className="text-[13px] font-normal text-muted dark:text-white">
+            E-mail
+          </label>
+          <div
+            className={`flex h-[50px] w-full items-center gap-3 rounded-full border bg-white px-[18px] shadow-[0_8px_20px_rgba(0,0,0,0.06)] transition-colors dark:bg-dark-surface dark:border-white/[0.08] ${errors.email ? "border-danger" : "border-transparent"}`}
+          >
+            <span className="flex items-center justify-center">
               <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
-                <path d="M2 2H16V12H2V2Z" stroke="rgba(119, 119, 119, 1)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2 2L9 8L16 2" stroke="rgba(119, 119, 119, 1)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                <path
+                  d="M2 2H16V12H2V2Z"
+                  stroke="rgba(119, 119, 119, 1)"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M2 2L9 8L16 2"
+                  stroke="rgba(119, 119, 119, 1)"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </span>
             <input
               type="email"
               name="email"
-              className="input-field"
+              className="w-full border-0 bg-transparent text-[15px] font-normal text-ink outline-none dark:text-white"
               placeholder="alex.morgan@gmail.com"
               value={formData.email}
               onChange={handleChange}
             />
           </div>
-          <span className="field-feedback">{errors.email}</span>
+          <span className="block min-h-[18px] text-[13px] leading-[18px] text-danger">
+            {errors.email}
+          </span>
         </div>
 
         {/* Password */}
-        <div className="field">
-          <label className="field-label">Password</label>
-          <div className={`input-wrapper ${errors.password ? 'error' : ''}`}>
-            <span className="input-icon">
+        <div className="flex flex-col gap-1">
+          <label className="text-[13px] font-normal text-muted dark:text-white">
+            Password
+          </label>
+          <div
+            className={`flex h-[50px] w-full items-center gap-3 rounded-full border bg-white px-[18px] shadow-[0_8px_20px_rgba(0,0,0,0.06)] transition-colors dark:bg-dark-surface dark:border-white/[0.08] ${errors.password ? "border-danger" : "border-transparent"}`}
+          >
+            <span className="flex items-center justify-center">
               <svg width="13.5" height="15" viewBox="0 0 13.5 15" fill="none">
-                <rect x="1.5" y="6.5" width="10.5" height="7" rx="1.5" stroke="rgba(119, 119, 119, 1)" strokeWidth="1.6"/>
-                <path d="M4.25 6.5V4A2.5 2.5 0 0 1 9.25 4V6.5" stroke="rgba(119, 119, 119, 1)" strokeWidth="1.6" strokeLinecap="round"/>
+                <rect
+                  x="1.5"
+                  y="6.5"
+                  width="10.5"
+                  height="7"
+                  rx="1.5"
+                  stroke="rgba(119, 119, 119, 1)"
+                  strokeWidth="1.6"
+                />
+                <path
+                  d="M4.25 6.5V4A2.5 2.5 0 0 1 9.25 4V6.5"
+                  stroke="rgba(119, 119, 119, 1)"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
               </svg>
             </span>
             <input
               type="password"
               name="password"
-              className="input-field"
+              className="w-full border-0 bg-transparent text-[15px] font-normal text-ink outline-none dark:text-white"
               placeholder="••••••••"
               value={formData.password}
               onChange={handleChange}
             />
           </div>
-          <span className="field-feedback">{errors.password}</span>
+          <span className="block min-h-[18px] text-[13px] leading-[18px] text-danger">
+            {errors.password}
+          </span>
         </div>
 
         {/* Confirm password */}
-        <div className="field">
-          <label className="field-label">Confirm password</label>
-          <div className={`input-wrapper ${errors.confirmPassword ? 'error' : ''}`}>
-            <span className="input-icon">
+        <div className="flex flex-col gap-1">
+          <label className="text-[13px] font-normal text-muted dark:text-white">
+            Confirm password
+          </label>
+          <div
+            className={`flex h-[50px] w-full items-center gap-3 rounded-full border bg-white px-[18px] shadow-[0_8px_20px_rgba(0,0,0,0.06)] transition-colors dark:bg-dark-surface dark:border-white/[0.08] ${errors.confirmPassword ? "border-danger" : "border-transparent"}`}
+          >
+            <span className="flex items-center justify-center">
               <svg width="13.5" height="15" viewBox="0 0 13.5 15" fill="none">
-                <rect x="1.5" y="6.5" width="10.5" height="7" rx="1.5" stroke="rgba(119, 119, 119, 1)" strokeWidth="1.6"/>
-                <path d="M4.25 6.5V4A2.5 2.5 0 0 1 9.25 4V6.5" stroke="rgba(119, 119, 119, 1)" strokeWidth="1.6" strokeLinecap="round"/>
+                <rect
+                  x="1.5"
+                  y="6.5"
+                  width="10.5"
+                  height="7"
+                  rx="1.5"
+                  stroke="rgba(119, 119, 119, 1)"
+                  strokeWidth="1.6"
+                />
+                <path
+                  d="M4.25 6.5V4A2.5 2.5 0 0 1 9.25 4V6.5"
+                  stroke="rgba(119, 119, 119, 1)"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
               </svg>
             </span>
             <input
               type="password"
               name="confirmPassword"
-              className="input-field"
+              className="w-full border-0 bg-transparent text-[15px] font-normal text-ink outline-none dark:text-white"
               placeholder="••••••••"
               value={formData.confirmPassword}
               onChange={handleChange}
             />
           </div>
-          <span className="field-feedback">{errors.confirmPassword}</span>
+          <span className="block min-h-[18px] text-[13px] leading-[18px] text-danger">
+            {errors.confirmPassword}
+          </span>
         </div>
 
-        <div className="auth-actions">
-          <button type="submit" className="submit-btn">
+        <div className="absolute inset-x-0 bottom-10 flex h-[86px] flex-col items-center justify-start">
+          <button
+            type="submit"
+            className="flex h-14 w-[295px] max-w-full items-center justify-center rounded-3xl border-0 bg-[linear-gradient(90deg,#ff7fc0_0%,#ff813e_100%)] text-xl font-medium text-white transition-[transform,opacity] duration-150 hover:opacity-95 active:scale-[0.98] dark:bg-[linear-gradient(135deg,#ff7fc0_0%,#ff813e_100%)] dark:text-[#141414]"
+          >
             CREATE
           </button>
-          <p className="signin-prompt">
+          <p className="mt-2 text-center text-[15px] font-normal text-ink dark:text-white">
             Do you have an account?
-            <button type="button" className="signin-link">Sign In</button>
+            <button
+              type="button"
+              className="ml-1 cursor-pointer border-0 bg-transparent font-[inherit] text-inherit underline dark:text-white"
+            >
+              Sign In
+            </button>
           </p>
         </div>
       </form>

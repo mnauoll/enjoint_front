@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const Step6Instagram = ({ onNext, initialData, username }) => {
   const [instaHandle, setInstaHandle] = useState(
-    initialData?.instagramHandle || (username ? `@${username}` : '@alexmorgan')
+    initialData?.instagramHandle || (username ? `@${username}` : "@alexmorgan"),
   );
   const [isConnected, setIsConnected] = useState(
-    initialData?.instagramConnected || false
+    initialData?.instagramConnected || false,
   );
   const [isEditing, setIsEditing] = useState(false);
 
@@ -20,8 +20,8 @@ const Step6Instagram = ({ onNext, initialData, username }) => {
     let formatted = instaHandle.trim();
 
     if (formatted) {
-      if (!formatted.startsWith('@')) {
-        formatted = '@' + formatted;
+      if (!formatted.startsWith("@")) {
+        formatted = "@" + formatted;
       }
       setInstaHandle(formatted);
       setIsConnected(true);
@@ -35,121 +35,220 @@ const Step6Instagram = ({ onNext, initialData, username }) => {
     e?.preventDefault();
     onNext({
       instagramConnected: isConnected,
-      instagramHandle: isConnected ? instaHandle : '',
+      instagramHandle: isConnected ? instaHandle : "",
     });
   };
 
   const handleSkip = () => {
     onNext({
       instagramConnected: false,
-      instagramHandle: '',
+      instagramHandle: "",
     });
   };
 
   return (
     <>
-      <div className="introduction">
-        <h1 className="introduction-heading">Instagram</h1>
-        <p className="introduction-description">
+      <div className="mb-5 flex h-[90px] w-full flex-col items-center gap-1.5">
+        <h1 className="m-0 text-center text-[56px] leading-[1.1] font-bold text-ink dark:text-white">
+          Instagram
+        </h1>
+        <p className="m-0 text-center text-base font-normal text-ink dark:text-white">
           Connect your Instagram account to share more of your world.
         </p>
       </div>
 
-      <div className="instagram-container">
-        
+      <div className="my-auto flex w-[329px] max-w-full flex-col items-center">
         {/* Иконка Instagram в розовом круге */}
-        <div className="instagram-circle-logo">
+        <div className="mb-5 flex size-20 items-center justify-center rounded-full bg-brand-pink/10">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-            <rect x="2" y="2" width="20" height="20" rx="6" stroke="rgba(255, 127, 192, 1)" strokeWidth="1.8"/>
-            <circle cx="12" cy="12" r="4.5" stroke="rgba(255, 127, 192, 1)" strokeWidth="1.8"/>
-            <circle cx="17.5" cy="6.5" r="1" fill="rgba(255, 127, 192, 1)"/>
+            <rect
+              x="2"
+              y="2"
+              width="20"
+              height="20"
+              rx="6"
+              stroke="rgba(255, 127, 192, 1)"
+              strokeWidth="1.8"
+            />
+            <circle
+              cx="12"
+              cy="12"
+              r="4.5"
+              stroke="rgba(255, 127, 192, 1)"
+              strokeWidth="1.8"
+            />
+            <circle cx="17.5" cy="6.5" r="1" fill="rgba(255, 127, 192, 1)" />
           </svg>
         </div>
 
         {/* Форма ввода ника или кнопка/плашка подключения */}
         {isEditing ? (
-          <form onSubmit={handleConfirmHandle} className="instagram-input-form">
-            <span className="instagram-btn-icon">
+          <form
+            onSubmit={handleConfirmHandle}
+            className="relative mb-3 flex h-[50px] w-full max-w-full items-center gap-2 overflow-hidden rounded-full border border-brand-pink bg-white py-0 pr-1.5 pl-[18px] shadow-[0_4px_15px_rgba(255,127,192,0.15)] dark:border-white/[0.08] dark:bg-dark-surface"
+          >
+            <span className="flex items-center justify-center">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <rect x="2" y="2" width="20" height="20" rx="6" stroke="rgba(255, 127, 192, 1)" strokeWidth="2"/>
-                <circle cx="12" cy="12" r="4.5" stroke="rgba(255, 127, 192, 1)" strokeWidth="2"/>
-                <circle cx="17.5" cy="6.5" r="1.2" fill="rgba(255, 127, 192, 1)"/>
+                <rect
+                  x="2"
+                  y="2"
+                  width="20"
+                  height="20"
+                  rx="6"
+                  stroke="rgba(255, 127, 192, 1)"
+                  strokeWidth="2"
+                />
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="4.5"
+                  stroke="rgba(255, 127, 192, 1)"
+                  strokeWidth="2"
+                />
+                <circle
+                  cx="17.5"
+                  cy="6.5"
+                  r="1.2"
+                  fill="rgba(255, 127, 192, 1)"
+                />
               </svg>
             </span>
             <input
               type="text"
-              className="instagram-handle-input"
+              className="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-[15px] font-medium text-ink outline-none dark:text-white"
               placeholder="@username"
               value={instaHandle}
               onChange={(e) => setInstaHandle(e.target.value)}
               autoFocus
             />
-            <button type="submit" className="instagram-save-btn">
+            <button
+              type="submit"
+              className="flex h-[38px] shrink-0 items-center justify-center rounded-full border-0 bg-brand-pink px-4 text-[13px] font-medium text-white transition-opacity hover:opacity-90"
+            >
               Connect
             </button>
           </form>
         ) : isConnected ? (
           <button
             type="button"
-            className="instagram-connect-btn connected"
+            className="mb-3 flex h-[50px] w-full max-w-full cursor-pointer items-center justify-center gap-2.5 rounded-full border border-[#e8e6ea] bg-white px-[18px] shadow-[0_4px_15px_rgba(0,0,0,0.03)] transition-all duration-200 hover:-translate-y-px hover:border-brand-pink/60 dark:border-white/[0.08] dark:bg-dark-surface"
             onClick={handleStartConnect}
           >
-            <span className="instagram-btn-icon">
+            <span className="flex items-center justify-center">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <rect x="2" y="2" width="20" height="20" rx="6" stroke="rgba(255, 127, 192, 1)" strokeWidth="2"/>
-                <circle cx="12" cy="12" r="4.5" stroke="rgba(255, 127, 192, 1)" strokeWidth="2"/>
-                <circle cx="17.5" cy="6.5" r="1.2" fill="rgba(255, 127, 192, 1)"/>
+                <rect
+                  x="2"
+                  y="2"
+                  width="20"
+                  height="20"
+                  rx="6"
+                  stroke="rgba(255, 127, 192, 1)"
+                  strokeWidth="2"
+                />
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="4.5"
+                  stroke="rgba(255, 127, 192, 1)"
+                  strokeWidth="2"
+                />
+                <circle
+                  cx="17.5"
+                  cy="6.5"
+                  r="1.2"
+                  fill="rgba(255, 127, 192, 1)"
+                />
               </svg>
             </span>
-            <span className="instagram-btn-text">
+            <span className="text-[15px] font-medium text-ink dark:text-white">
               Instagram connected • {instaHandle}
             </span>
           </button>
         ) : (
           <button
             type="button"
-            className="instagram-connect-btn"
+            className="mb-3 flex h-[50px] w-full max-w-full cursor-pointer items-center justify-center gap-2.5 rounded-full border border-[#e8e6ea] bg-white px-[18px] shadow-[0_4px_15px_rgba(0,0,0,0.03)] transition-all duration-200 hover:-translate-y-px hover:border-brand-pink/60 dark:border-white/[0.08] dark:bg-dark-surface"
             onClick={handleStartConnect}
           >
-            <span className="instagram-btn-icon">
+            <span className="flex items-center justify-center">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <rect x="2" y="2" width="20" height="20" rx="6" stroke="rgba(255, 127, 192, 1)" strokeWidth="2"/>
-                <circle cx="12" cy="12" r="4.5" stroke="rgba(255, 127, 192, 1)" strokeWidth="2"/>
-                <circle cx="17.5" cy="6.5" r="1.2" fill="rgba(255, 127, 192, 1)"/>
+                <rect
+                  x="2"
+                  y="2"
+                  width="20"
+                  height="20"
+                  rx="6"
+                  stroke="rgba(255, 127, 192, 1)"
+                  strokeWidth="2"
+                />
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="4.5"
+                  stroke="rgba(255, 127, 192, 1)"
+                  strokeWidth="2"
+                />
+                <circle
+                  cx="17.5"
+                  cy="6.5"
+                  r="1.2"
+                  fill="rgba(255, 127, 192, 1)"
+                />
               </svg>
             </span>
-            <span className="instagram-btn-text">Connect with Instagram</span>
+            <span className="text-[15px] font-medium text-ink dark:text-white">
+              Connect with Instagram
+            </span>
           </button>
         )}
 
         {/* Единственное сообщение статуса под кнопкой */}
-        <div className="instagram-status-block">
+        <div className="flex min-h-5 items-center justify-center">
           {isConnected ? (
-            <div className="instagram-status-row success">
+            <div className="flex items-center gap-1.5 text-[13px] font-normal text-success">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <circle cx="8" cy="8" r="7" stroke="rgba(50, 129, 70, 1)" strokeWidth="1.5"/>
-                <path d="M5 8L7 10L11 6" stroke="rgba(50, 129, 70, 1)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="7"
+                  stroke="rgba(50, 129, 70, 1)"
+                  strokeWidth="1.5"
+                />
+                <path
+                  d="M5 8L7 10L11 6"
+                  stroke="rgba(50, 129, 70, 1)"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
               <span>Example account connected.</span>
             </div>
           ) : (
-            <p className="instagram-status-subtext">
+            <p className="m-0 text-center text-[13px] font-normal text-muted dark:text-white/70">
               No account connected. You can connect later.
             </p>
           )}
         </div>
 
         {/* Кнопка Next и ссылка Skip */}
-        <div className="auth-actions">
-          <button type="button" className="submit-btn" onClick={handleNext}>
+        <div className="absolute inset-x-0 bottom-10 flex h-[86px] flex-col items-center justify-start">
+          <button
+            type="button"
+            className="flex h-14 w-[295px] max-w-full items-center justify-center rounded-3xl border-0 bg-[linear-gradient(90deg,#ff7fc0_0%,#ff813e_100%)] text-xl font-medium text-white transition-[transform,opacity] duration-150 hover:opacity-95 active:scale-[0.98] dark:bg-[linear-gradient(135deg,#ff7fc0_0%,#ff813e_100%)] dark:text-[#141414]"
+            onClick={handleNext}
+          >
             Next
           </button>
-          
-          <button type="button" className="skip-action-link" onClick={handleSkip}>
+
+          <button
+            type="button"
+            className="mt-2 cursor-pointer border-0 bg-transparent p-0 text-[14px] font-normal text-ink underline transition-opacity hover:opacity-70 dark:text-white"
+            onClick={handleSkip}
+          >
             Skip
           </button>
         </div>
-
       </div>
     </>
   );

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const Step8Notifications = ({ onFinish, initialData }) => {
   const [pushEnabled, setPushEnabled] = useState(
-    initialData?.pushEnabled !== undefined ? initialData.pushEnabled : true
+    initialData?.pushEnabled !== undefined ? initialData.pushEnabled : true,
   );
 
   const handleToggle = () => {
@@ -20,17 +20,18 @@ const Step8Notifications = ({ onFinish, initialData }) => {
 
   return (
     <>
-      <div className="introduction">
-        <h1 className="introduction-heading">Notifications</h1>
-        <p className="introduction-description">
+      <div className="mb-5 flex h-[90px] w-full flex-col items-center gap-1.5">
+        <h1 className="m-0 text-center text-[56px] leading-[1.1] font-bold text-ink dark:text-white">
+          Notifications
+        </h1>
+        <p className="m-0 text-center text-base font-normal text-ink dark:text-white">
           Get push notifications when you get a match or receive a message.
         </p>
       </div>
 
-      <div className="notifications-container">
-        
+      <div className="my-auto flex w-[329px] max-w-full flex-col items-center">
         {/* Векторный логотип колокольчика из Figma */}
-        <div className="notifications-circle-logo">
+        <div className="mb-5 flex size-20 items-center justify-center rounded-full bg-brand-pink/10">
           {pushEnabled ? (
             /* Включенный колокольчик: 42px x 46.67px, Border 2px */
             <svg width="42" height="47" viewBox="0 0 42 47" fill="none">
@@ -80,43 +81,68 @@ const Step8Notifications = ({ onFinish, initialData }) => {
         </div>
 
         {/* Плашка переключателя Push notifications */}
-        <div className="notifications-access-card">
-          <span className="notifications-access-label">Push notifications</span>
-          
+        <div className="mb-3 flex h-[50px] w-full max-w-full items-center justify-between rounded-full bg-brand-pink/10 px-[18px] dark:border dark:border-white/[0.08] dark:bg-dark-surface">
+          <span className="text-[15px] font-medium text-ink dark:text-white">
+            Push notifications
+          </span>
+
           <button
             type="button"
-            className={`location-toggle-switch ${pushEnabled ? 'active' : ''}`}
+            className={`flex h-[26px] w-11 cursor-pointer items-center rounded-full border-0 p-[3px] transition-colors duration-200 ${pushEnabled ? "justify-end bg-brand-pink" : "justify-start bg-[#e8e6ea]"}`}
             onClick={handleToggle}
           >
-            <div className="toggle-thumb" />
+            <div className="size-5 rounded-full bg-white shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
           </button>
         </div>
 
         {/* Сообщение статуса под плашкой */}
-        <div className="notifications-status-block">
+        <div className="flex min-h-[38px] flex-col items-center gap-1">
           {pushEnabled ? (
             <>
-              <div className="notifications-status-row success">
+              <div className="flex items-center gap-1.5 text-[13px] font-normal text-success">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="7" stroke="rgba(50, 129, 70, 1)" strokeWidth="1.5"/>
-                  <path d="M5 8L7 10L11 6" stroke="rgba(50, 129, 70, 1)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="7"
+                    stroke="rgba(50, 129, 70, 1)"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M5 8L7 10L11 6"
+                    stroke="rgba(50, 129, 70, 1)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
                 <span>Notifications enabled.</span>
               </div>
-              <p className="notifications-status-subtext">
+              <p className="m-0 text-center text-[12px] font-normal text-muted dark:text-white/70">
                 You’re ready to stay in the loop.
               </p>
             </>
           ) : (
             <>
-              <div className="notifications-status-row skipped">
+              <div className="flex items-center gap-1.5 text-[13px] font-normal text-muted dark:text-white/70">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="7" stroke="rgba(119, 119, 119, 1)" strokeWidth="1.5"/>
-                  <path d="M5 8H11" stroke="rgba(119, 119, 119, 1)" strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="7"
+                    stroke="rgba(119, 119, 119, 1)"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M5 8H11"
+                    stroke="rgba(119, 119, 119, 1)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
                 </svg>
                 <span>Skipped. Continue without notifications.</span>
               </div>
-              <p className="notifications-status-subtext">
+              <p className="m-0 text-center text-[12px] font-normal text-muted dark:text-white/70">
                 Notifications are off. You can turn them on later.
               </p>
             </>
@@ -124,13 +150,15 @@ const Step8Notifications = ({ onFinish, initialData }) => {
         </div>
 
         {/* Зафиксированные действия снизу */}
-        <div className="auth-actions">
-          <button type="button" className="submit-btn" onClick={handleFinish}>
+        <div className="absolute inset-x-0 bottom-10 flex h-[86px] flex-col items-center justify-start">
+          <button
+            type="button"
+            className="flex h-14 w-[295px] max-w-full items-center justify-center rounded-3xl border-0 bg-[linear-gradient(90deg,#ff7fc0_0%,#ff813e_100%)] text-xl font-medium text-white transition-[transform,opacity] duration-150 hover:opacity-95 active:scale-[0.98] dark:bg-[linear-gradient(135deg,#ff7fc0_0%,#ff813e_100%)] dark:text-[#141414]"
+            onClick={handleFinish}
+          >
             Finish
           </button>
-          
         </div>
-
       </div>
     </>
   );
