@@ -1161,3 +1161,388 @@
   margin: 0;
 }
 
+/* ==========================================================================
+   ПОЛНЫЙ И ТОЧНЫЙ CSS ТЁМНОЙ ТЕМЫ (DARK MODE) — С ТОЧЕЧНЫМИ ФИКСАМИ
+   ========================================================================== */
+/* ==========================================================================
+   ИСПРАВЛЕНИЯ ДЛЯ СВЕТЛОЙ ТЕМЫ (LIGHT MODE)
+   ========================================================================== */
+
+/* 1. Возвращаем видимость иконок '<' и 'X' в светлом режиме */
+.header-nav-btn {
+  background-color: #ffffff !important;
+  border: 1px solid rgba(232, 230, 234, 1) !important;
+}
+
+.header-nav-btn svg path {
+  stroke: #262626 !important; /* Тёмные иконки в светлой теме */
+}
+
+/* 2. Убираем голубую полосу браузерного автозаполнения (Autofill) в светлой теме */
+.input-field:-webkit-autofill,
+.input-field:-webkit-autofill:hover,
+.input-field:-webkit-autofill:focus,
+.input-field:-webkit-autofill:active,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #262626 !important;
+  caret-color: #262626 !important;
+  transition: background-color 50000s ease-in-out 0s;
+}
+/* --- 1. ФОН СТРАНИЦЫ И ГЛАВНАЯ КАРТОЧКА --- */
+.register-page.dark {
+  background: 
+    /* 1. Розовый линейный градиент из правого верхнего угла (rgba(255, 127, 192, 0.8)) */
+    linear-gradient(225deg, rgba(255, 127, 192, 0.5) 0%, rgba(5, 7, 10, 0) 50%),
+    
+    /* 2. Оранжевый линейный градиент из левого нижнего угла (rgba(255, 129, 62, 0.8)) */
+    linear-gradient(45deg, rgba(255, 129, 62, 0.75) 0%, rgba(5, 7, 10, 0) 60%),
+    
+    /* 3. Базовый тёмный фон (rgba(5, 7, 10, 1)) */
+    rgba(5, 7, 10, 1) !important;
+}
+
+.register-page.dark .registration-card {
+  background-color: rgba(11, 15, 20, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.0706) !important;
+  box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Кнопки навигации в шапке ('<' и 'X') */
+.register-page.dark .header-nav-btn {
+  background-color: rgba(17, 22, 29, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.0784) !important;
+}
+
+.register-page.dark .header-nav-btn svg path {
+  stroke: #ffffff !important;
+}
+
+/* Заголовки и основные подписи */
+.register-page.dark .introduction-heading,
+.register-page.dark .introduction-description,
+.register-page.dark .field-label,
+.register-page.dark .step-count-text {
+  color: #ffffff !important;
+}
+
+
+/* --- ПУНКТ 1: ВЫБОР ПОЛА (STEP 3) — НАДПИСЬ БЕЛАЯ + ПЛАШКИ КАК У NICK/AGE --- */
+
+/* Надпись "Gender" над выбором пола */
+.register-page.dark .gender-label,
+.register-page.dark .gender-title,
+.register-page.dark [class*="gender-label"] {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Сброс рамки с группирующего контейнера пола */
+.register-page.dark .gender-container,
+.register-page.dark .gender-group,
+.register-page.dark fieldset,
+.register-page.dark [class*="gender-wrapper"],
+.register-page.dark [class*="gender-group"] {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Невыбранная карточка пола (ТЁМНО-СЕРАЯ, ТОЧНО КАК USERNAME/AGE) */
+.register-page.dark .gender-option,
+.register-page.dark .gender-card,
+.register-page.dark .gender-btn,
+.register-page.dark [class*="gender-item"],
+.register-page.dark [class*="gender-option"] {
+  background: rgba(17, 22, 29, 1) !important;
+  background-color: rgba(17, 22, 29, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.0784) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+/* Сброс рамок вокруг текста внутри карточек пола */
+.register-page.dark .gender-option *,
+.register-page.dark .gender-card *,
+.register-page.dark .gender-btn *,
+.register-page.dark [class*="gender"] * {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+}
+
+/* ВЫБРАННЫЙ ПОЛ — ЯРКО-РОЗОВЫЙ ФОН С БЕЛЫМ ТЕКСТОМ */
+.register-page.dark .gender-option.selected,
+.register-page.dark .gender-option.active,
+.register-page.dark .gender-card.selected,
+.register-page.dark .gender-card.active,
+.register-page.dark .gender-btn.selected,
+.register-page.dark .gender-btn.active,
+.register-page.dark [class*="gender"].selected,
+.register-page.dark [class*="gender"].active {
+  background: linear-gradient(135deg, rgba(255, 127, 192, 1) 0%, rgba(255, 129, 62, 1) 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
+}
+
+
+/* --- ПУНКТ 2: ПОЛЕ БИО (STEP 4) — ПОЛНОСТЬЮ ТЁМНОЕ --- */
+
+.register-page.dark .bio-container,
+.register-page.dark .bio-wrapper,
+.register-page.dark .bio-field-wrapper,
+.register-page.dark div:has(> textarea) {
+  background-color: rgba(17, 22, 29, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.register-page.dark textarea,
+.register-page.dark .bio-textarea,
+.register-page.dark .bio-input {
+  background-color: rgba(17, 22, 29, 1) !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  resize: none !important;
+}
+
+.register-page.dark textarea::placeholder,
+.register-page.dark .bio-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.register-page.dark .upload-photo-text,
+.register-page.dark .upload-photo-btn,
+.register-page.dark .photo-upload-label {
+  color: #ffffff !important;
+}
+
+
+/* --- ПУНКТ 2 (ИНИЦИАТИВА): ИНТЕРЕСЫ (STEP 5) — КНОПКА И БЕЛЫЕ ПОДПИСИ --- */
+
+.register-page.dark .interests-grid,
+.register-page.dark .interests-container,
+.register-page.dark .interests-wrapper,
+.register-page.dark [class*="interests-group"] {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Невыбранный интерес */
+.register-page.dark .interest-card,
+.register-page.dark .interest-item,
+.register-page.dark .interest-chip,
+.register-page.dark [class*="interest-btn"] {
+  background-color: rgba(17, 22, 29, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.register-page.dark .interest-card *,
+.register-page.dark .interest-item *,
+.register-page.dark .interest-chip *,
+.register-page.dark [class*="interest"] * {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+}
+
+/* Выбранный интерес */
+.register-page.dark .interest-card.selected,
+.register-page.dark .interest-card.active,
+.register-page.dark .interest-item.selected,
+.register-page.dark .interest-item.active,
+.register-page.dark .interest-chip.selected,
+.register-page.dark [class*="interest"].selected,
+.register-page.dark [class*="interest"].active {
+  background: linear-gradient(135deg, rgba(255, 127, 192, 1) 0%, rgba(255, 129, 62, 1) 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
+}
+
+/* Надписи "1 options selected" и "Choose at least four options" — БЕЛЫЕ */
+.register-page.dark .interests-count,
+.register-page.dark .options-selected-text,
+.register-page.dark .interests-status,
+.register-page.dark [class*="selected-info"],
+.register-page.dark [class*="selected-text"],
+.register-page.dark [class*="interests-status"] {
+  border: none !important;
+  background: transparent !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+.register-page.dark [class*="selected-info"] *,
+.register-page.dark [class*="selected-text"] *,
+.register-page.dark [class*="interests-status"] * {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+
+/* --- ПУНКТ 3: ИНСТАГРАМ (STEP 6) — ТЁМНО-СЕРЫЙ ФОН ВМЕСТО БЕЛОГО --- */
+
+.register-page.dark .instagram-pill,
+.register-page.dark .instagram-input-wrapper,
+.register-page.dark .instagram-input-container,
+.register-page.dark .instagram-card,
+.register-page.dark .instagram-connect-btn,
+.register-page.dark button.instagram-connect-btn,
+.register-page.dark [class*="instagram-btn"],
+.register-page.dark [class*="instagram-connect"],
+.register-page.dark [class*="instagram-box"],
+.register-page.dark [class*="instagram-pill"] {
+  background: rgba(17, 22, 29, 1) !important;
+  background-color: rgba(17, 22, 29, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.0784) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.register-page.dark .instagram-pill input,
+.register-page.dark .instagram-input-wrapper input,
+.register-page.dark .instagram-connect-btn *,
+.register-page.dark [class*="instagram-connect"] * {
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.register-page.dark .instagram-status,
+.register-page.dark .no-account-text,
+.register-page.dark .instagram-connected-text,
+.register-page.dark [class*="account-connected"],
+.register-page.dark [class*="instagram"] p,
+.register-page.dark [class*="instagram"] span {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+
+/* --- ПУНКТ 4: ЛОКАЦИЯ (STEP 7) — ТЁМНО-СЕРАЯ ПЛАШКА С БЕЛЫМ ТЕКСТОМ --- */
+
+.register-page.dark .location-card,
+.register-page.dark .location-access-card,
+.register-page.dark .location-access-row,
+.register-page.dark .location-row,
+.register-page.dark .location-toggle-wrapper,
+.register-page.dark [class*="location-access"],
+.register-page.dark [class*="location-card"] {
+  background: rgba(17, 22, 29, 1) !important;
+  background-color: rgba(17, 22, 29, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.0784) !important;
+  box-shadow: none !important;
+}
+
+.register-page.dark .location-access-label,
+.register-page.dark .location-card span,
+.register-page.dark .location-card p,
+.register-page.dark [class*="location-access"] * {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+
+/* --- ССЫЛКИ И КЛИКАБЕЛЬНЫЕ ТЕКСТЫ ПОД КНОПКАМИ --- */
+
+.register-page.dark .auth-footer-text,
+.register-page.dark .auth-footer-text a,
+.register-page.dark .auth-link,
+.register-page.dark .skip-action-link,
+.register-page.dark .skip-btn,
+.register-page.dark .location-manual-toggle-btn,
+.register-page.dark .resend-link,
+.register-page.dark .sub-action-text,
+.register-page.dark [class*="manual-toggle"],
+.register-page.dark [class*="enter-location"],
+.register-page.dark [class*="skip"],
+.register-page.dark button.location-manual-toggle-btn,
+.register-page.dark button[type="button"]:not(.header-nav-btn):not(.submit-btn):not(.next-btn) {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-decoration-color: #ffffff !important;
+}
+
+
+/* --- БАЗОВЫЕ ИНПУТЫ И ГЛАВНАЯ КНОПКА ДЕЙСТВИЯ (NEXT / CREATE) --- */
+
+.register-page.dark .input-wrapper {
+  background-color: rgba(17, 22, 29, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.0784) !important;
+}
+
+.register-page.dark .input-field {
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.register-page.dark .input-field:-webkit-autofill,
+.register-page.dark .input-field:-webkit-autofill:hover,
+.register-page.dark .input-field:-webkit-autofill:focus,
+.register-page.dark .input-field:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgba(17, 22, 29, 1) inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  transition: background-color 50000s ease-in-out 0s;
+}
+
+/* Главная яркая кнопка действия (Next / Create) на всех шагах */
+.register-page.dark .submit-btn,
+.register-page.dark button.submit-btn,
+.register-page.dark .next-btn {
+  background: linear-gradient(135deg, rgba(255, 127, 192, 1) 0%, rgba(255, 129, 62, 1) 100%) !important;
+  color: rgba(20, 20, 20, 1) !important;
+  font-weight: 500 !important;
+  font-size: 20px !important;
+  line-height: 24px !important;
+  opacity: 1 !important;
+}
+
+/* Переключатель Dark/Light mode */
+.dark-mode-btn {
+  position: absolute;
+  left: 32px;
+  bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffffff;
+  border: 1px solid rgba(232, 230, 234, 1);
+  border-radius: 30px;
+  padding: 8px 14px;
+  font-family: 'Rubik', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(38, 38, 38, 1);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  z-index: 10;
+}
+
+.register-page.dark .dark-mode-btn {
+  background-color: rgba(17, 22, 29, 1) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
