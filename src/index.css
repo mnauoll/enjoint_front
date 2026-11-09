@@ -90,3 +90,10 @@
   background: transparent !important;
   border: none !important;
 }
+
+.event-type-option:hover,
+.event-type-option:focus-visible {
+  background-color: #ff7fc0 !important;
+  color: #171717 !important;
+  outline: none;
+}

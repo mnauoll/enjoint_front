@@ -2,28 +2,58 @@ import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { renderToString } from 'react-dom/server';
-import { Camera, Utensils, Coffee, Music, Flame } from 'lucide-react';
+import {
+  Activity,
+  Camera,
+  CarFront,
+  Coffee,
+  Compass,
+  Flame,
+  Mountain,
+  Music,
+  ShoppingBag,
+  Smile,
+  Utensils,
+  Wine,
+} from 'lucide-react';
 
 const API_KEY = import.meta.env.VITE_STADIA_API_KEY || process.env.REACT_APP_STADIA_API_KEY || '';
 
+// Сопоставление категорий с иконками Figma
 const iconMap = {
-  photo: Camera,
-  food: Utensils,
+  'Food & Drinks': Utensils,
+  Nightlife: Wine,
+  'Outdoor & Active': Mountain,
+  Sightseeing: Camera,
+  Entertainment: Music,
+  Shopping: ShoppingBag,
+  Wellness: Activity,
+  Social: Coffee,
+  Rideshare: CarFront,
+  Other: Smile,
   coffee: Coffee,
+  drink: Wine,
   music: Music,
   party: Flame,
+  photo: Camera,
+  food: Utensils,
+  shopping: ShoppingBag,
+  travel: Compass,
+  sport: Activity,
+  other: Smile,
 };
 
-const createCustomIcon = (type = 'party', isDark) => {
-  const IconComponent = iconMap[type] || Flame;
+// Создание круглого маркера в стиле Figma (#FF7FC0)
+const createCustomIcon = (type = 'coffee', isDark) => {
+  const IconComponent = iconMap[type] || Coffee;
   
   const iconHtml = renderToString(
-    <div className={`w-9 h-9 rounded-full flex items-center justify-center shadow-lg border-2 transition-transform hover:scale-110 cursor-pointer ${
+    <div className={`w-9 h-9 rounded-full flex items-center justify-center border transition-all shadow-md hover:scale-110 cursor-pointer ${
       isDark 
-        ? 'bg-[#1a1625] border-[#ff7fc0] text-[#ff7fc0]' 
-        : 'bg-white border-[#ff7fc0] text-[#ff7fc0]'
+        ? 'bg-[#1e1726]/85 border-[#ff7fc0]/70 text-[#ff7fc0] backdrop-blur-sm' 
+        : 'bg-white/90 border-[#ff7fc0] text-[#ff7fc0] shadow-pink-500/10'
     }`}>
-      <IconComponent className="w-4 h-4" />
+      <IconComponent className="w-4 h-4 stroke-[2.2]" />
     </div>
   );
 
@@ -60,8 +90,6 @@ export default function ExploreMap({ isDark = true, center, events = [], onMapCl
   const defaultCenter = [40.730610, -73.935242];
   const activeCenter = center || defaultCenter;
 
-  // Использованием ОДИН И ТОТ ЖЕ тайловый источник OSM Bright для обеих тем,
-  // чтобы шрифты, номера дорог и детальность были абсолютно одинаковыми.
   const baseTileUrl = API_KEY 
     ? `https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png?api_key=${API_KEY}`
     : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
@@ -77,11 +105,6 @@ export default function ExploreMap({ isDark = true, center, events = [], onMapCl
         <MapController center={center} />
         <MapClickHandler onMapClick={onMapClick} />
 
-        {/* 
-          Для тёмной темы применяем инверсию цветов: 
-          она превращает светлый OSM Bright в идеальную тёмную карту, 
-          сохраняя ВСЕ шрифты, геометрию и детализацию исходной карты.
-        */}
         <TileLayer
           key={isDark ? 'dark-map-layer' : 'light-map-layer'}
           url={baseTileUrl}
@@ -90,17 +113,20 @@ export default function ExploreMap({ isDark = true, center, events = [], onMapCl
           maxZoom={20}
         />
 
-        {/* Маркеры событий */}
+        {/* Динамические маркеры событий */}
         {events.map((evt) => (
           <Marker 
             key={evt.id} 
             position={[evt.lat, evt.lng]} 
-            icon={createCustomIcon(evt.type, isDark)}
+            icon={createCustomIcon(evt.category || evt.type, isDark)}
           >
             <Popup>
-              <div className="p-1 font-sans">
-                <h4 className="font-bold text-sm text-gray-900">{evt.title}</h4>
-                <p className="text-xs text-gray-500 capitalize">Категория: {evt.type}</p>
+              <div className="p-1 font-sans min-w-[140px]">
+                <span className="text-[10px] font-bold tracking-wider text-[#ff7fc0] uppercase">
+                  {evt.category || 'Event'}
+                </span>
+                <h4 className="font-bold text-sm text-gray-900 mt-0.5">{evt.title}</h4>
+                <p className="text-xs text-gray-500 mt-1">{evt.date || 'Today'} • {evt.people || 'Open'}</p>
               </div>
             </Popup>
           </Marker>
