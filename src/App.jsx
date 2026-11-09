@@ -1,8 +1,10 @@
-import Register from './pages/Register';
+// import Register from './pages/Register';
+import ExplorePage from './pages/ExplorePage';
 
 function App() {
   return (
-    <Register />
+    //<Register />
+    <ExplorePage />
   );
 }
 
