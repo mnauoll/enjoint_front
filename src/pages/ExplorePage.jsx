@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import ExploreMap from '../components/ExploreMap';
 import CreateEventModal from '../components/CreateEventModal';
-import { Search, ChevronDown, Plus, MapPin, X, Sun, Moon } from 'lucide-react';
+import AppHeader from '../components/AppHeader';
+import { Plus, MapPin, Sun, Moon } from 'lucide-react';
 
 export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDark }) {
   const [localIsDark, setLocalIsDark] = useState(true);
@@ -155,70 +156,12 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
           </div>
         )}
         
-        {/* ВЕРХНЯЯ ШАПКА FIGMA */}
-        <header
-          className="fixed top-0 left-0 right-0 h-[82px] px-8 pt-4 flex items-start justify-between z-30 pointer-events-auto select-none"
-          style={{
-            background:
-              'linear-gradient(180deg, rgba(18,20,20,.94) 0%, rgba(32,34,33,.72) 48%, rgba(32,34,33,.24) 78%, rgba(32,34,33,0) 100%)',
-            backdropFilter: 'blur(6px)',
-            WebkitBackdropFilter: 'blur(6px)',
-          }}
-        >
-          
-          <div className="flex items-center gap-[30px] shrink-0 z-10">
-            <span className="font-sans font-bold text-[27px] leading-[140%] text-white tracking-wide">
-              ENJOINT
-            </span>
-
-            <div className="w-[330px] h-[46px] rounded-[24px] px-[18px] flex items-center gap-[12px] bg-[#F7F8FA] dark:bg-[#1A212B] shrink-0 shadow-md border border-gray-100 dark:border-white/5 transition-colors">
-              <Search className="w-4 h-4 text-[#AD316B] dark:text-[#FF7FC0] shrink-0" />
-              <input 
-                type="text" 
-                placeholder="New York, NY" 
-                className="w-full bg-transparent outline-none font-sans text-sm text-[#262626] dark:text-white placeholder-[#262626]/60 dark:placeholder-white/60"
-              />
-              <button className="text-gray-400 hover:text-[#262626] dark:hover:text-white cursor-pointer">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          <nav className="hidden lg:flex items-center gap-7 font-sans font-semibold text-[15px] leading-none absolute left-1/2 -translate-x-1/2 top-7 z-10">
-            {['Explore Map', 'Chat', 'My Events', 'Friends', 'Settings'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`transition-colors cursor-pointer whitespace-nowrap ${
-                  activeTab === tab ? 'text-[#FF7FC0]' : 'text-white hover:text-[#FF7FC0]'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-5 shrink-0 relative z-10">
-            <button className="h-[38px] px-4 rounded-full bg-white text-[#262626] font-sans font-semibold text-sm flex items-center gap-1.5 shadow-md hover:bg-gray-50 transition-colors cursor-pointer">
-              <span>Filters</span>
-              <ChevronDown className="w-4 h-4 text-[#262626]" />
-            </button>
-
-            <div className="w-[43px] h-[40px] relative flex items-center justify-center shrink-0">
-              <div className="absolute top-[-28px] left-0 w-[43px] h-[150px] pointer-events-none z-20">
-                <svg width="43" height="150" viewBox="0 0 43 150" fill="none">
-                  <path d="M1.5 0H41.5V140L21.5 124L1.5 140V0Z" fill="#AD316B" stroke="#FF7FC0" strokeWidth="3"/>
-                  <line x1="13" y1="0" x2="13" y2="130" stroke="#FF7FC0" strokeWidth="2" strokeDasharray="3 3"/>
-                  <line x1="30" y1="0" x2="30" y2="130" stroke="#FF7FC0" strokeWidth="2" strokeDasharray="3 3"/>
-                </svg>
-              </div>
-            </div>
-
-            <div className="w-[38px] h-[38px] rounded-full bg-white dark:bg-[#2A1E2A] border border-gray-200 dark:border-[#FF7FC0]/40 flex items-center justify-center font-sans font-bold text-xs text-[#262626] dark:text-[#FF7FC0] shadow-md cursor-pointer shrink-0">
-              AM
-            </div>
-          </div>
-        </header>
+        <AppHeader
+          fixed
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          isDark={isDark}
+        />
 
         {/* НАЖАТИЕ НА ЭТОТ РОЗОВЫЙ ПЛЮСИК ОТКРЫВАЕТ ВЕСЬ МАСТЕР 1/5 */}
         <button 
