@@ -3,6 +3,13 @@ import ExploreMap from '../components/ExploreMap';
 import CreateEventModal from '../components/CreateEventModal';
 import AppHeader from '../components/AppHeader';
 import { Plus, MapPin, Sun, Moon } from 'lucide-react';
+import { DEMO_EVENTS, POZNAN_CENTER } from '../data/demoEvents';
+import EventDetailsPanel from '../components/events/EventDetailsPanel';
+import EventJoinedDialog from '../components/events/EventJoinedDialog';
+import {
+  getEventCapacity,
+  getEventParticipantCount,
+} from '../components/events/eventUtils';
 
 export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDark }) {
   const [localIsDark, setLocalIsDark] = useState(true);
@@ -19,7 +26,12 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
   }, [isDark]);
 
   const [userLocation, setUserLocation] = useState(null);
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState(DEMO_EVENTS);
+  const [previewEvent, setPreviewEvent] = useState(null);
+  const [activeEvent, setActiveEvent] = useState(null);
+  const [joinedEventIds, setJoinedEventIds] = useState(() => new Set());
+  const [participantCounts, setParticipantCounts] = useState({});
+  const [joinedEvent, setJoinedEvent] = useState(null);
   const [activeTab, setActiveTab] = useState('Explore Map');
 
   // Модальное окно пошагового создания
@@ -30,10 +42,6 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
   const [pickedEventAddress, setPickedEventAddress] = useState('');
   const [isResolvingEventAddress, setIsResolvingEventAddress] = useState(false);
   const [eventAddressLookupFailed, setEventAddressLookupFailed] = useState(false);
-
-  useEffect(() => {
-    getUserLocation();
-  }, []);
 
   useEffect(() => {
     if (!isResolvingEventAddress || !tempCoords) return undefined;
@@ -88,6 +96,8 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
   };
 
   const handleMapClick = (latlng) => {
+    setPreviewEvent(null);
+    setActiveEvent(null);
     const coordinates = [latlng.lat, latlng.lng];
     setTempCoords(coordinates);
     setPickedEventAddress('');
@@ -106,7 +116,9 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
   };
 
   const handleOpenAddModal = () => {
-    setTempCoords(userLocation || [40.730610, -73.935242]);
+    setPreviewEvent(null);
+    setActiveEvent(null);
+    setTempCoords(userLocation || POZNAN_CENTER);
     setHasPickedEventLocation(false);
     setPickedEventAddress('');
     setIsResolvingEventAddress(false);
@@ -128,6 +140,26 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
     setEvents((prev) => [...prev, newEvent]);
   };
 
+  const handleJoinEvent = (event) => {
+    if (joinedEventIds.has(event.id)) return;
+
+    const participantCount =
+      participantCounts[event.id] ?? getEventParticipantCount(event);
+    if (participantCount >= getEventCapacity(event)) return;
+
+    const joinedCount = participantCount + 1;
+    setParticipantCounts((counts) => ({ ...counts, [event.id]: joinedCount }));
+    setJoinedEventIds((ids) => new Set(ids).add(event.id));
+    setPreviewEvent(null);
+    setActiveEvent(null);
+    setJoinedEvent({ ...event, joinedCount });
+  };
+
+  const handleEventDetails = (event) => {
+    setPreviewEvent(null);
+    setActiveEvent(event);
+  };
+
   return (
     <div className="relative w-screen h-screen overflow-hidden font-sans select-none">
       
@@ -135,9 +167,19 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
       <div className="absolute inset-0 z-0">
         <ExploreMap 
           isDark={isDark} 
-          center={userLocation}
+          center={userLocation || POZNAN_CENTER}
           events={events}
+          participantCounts={participantCounts}
+          joinedEventIds={joinedEventIds}
+          previewEvent={previewEvent}
           onMapClick={handleMapClick}
+          onEventSelect={(event) => {
+            setActiveEvent(null);
+            setPreviewEvent(event);
+          }}
+          onCloseEventPreview={() => setPreviewEvent(null)}
+          onEventDetails={handleEventDetails}
+          onJoinEvent={handleJoinEvent}
         />
       </div>
 
@@ -228,6 +270,21 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
 
       </div>
 
+      {activeEvent && (
+        <EventDetailsPanel
+          key={activeEvent.id}
+          event={activeEvent}
+          isDark={isDark}
+          participantCount={
+            participantCounts[activeEvent.id] ??
+            getEventParticipantCount(activeEvent)
+          }
+          isJoined={joinedEventIds.has(activeEvent.id)}
+          onClose={() => setActiveEvent(null)}
+          onJoin={handleJoinEvent}
+        />
+      )}
+
       {/* 3. ПОШАГОВОЕ МОДАЛЬНОЕ ОКНО СОЗДАНИЯ ИВЕНТА И УСПЕХА */}
       <CreateEventModal
         isOpen={isModalOpen}
@@ -243,6 +300,14 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
         isResolvingLocationAddress={isResolvingEventAddress}
         locationAddressLookupFailed={eventAddressLookupFailed}
       />
+
+      {joinedEvent && (
+        <EventJoinedDialog
+          event={joinedEvent}
+          isDark={isDark}
+          onClose={() => setJoinedEvent(null)}
+        />
+      )}
 
     </div>
   );

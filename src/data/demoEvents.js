@@ -1,0 +1,55 @@
+export const POZNAN_CENTER = [52.4064, 16.9252];
+
+export const DEMO_EVENTS = [
+  {
+    id: "demo-poznan-coffee",
+    title: "Coffee & good company",
+    category: "Social",
+    date: "Today · 17:00",
+    people: "3 people",
+    attendeesCount: 3,
+    maxParticipants: 12,
+    price: "Free",
+    description:
+      "Take a break, enjoy a good coffee, and meet friendly people from Poznań.",
+    address: "Old Market Square, Poznań",
+    host: "Maja Nowak",
+    participants: ["Maja Nowak", "Alex Morgan", "Sam Lee"],
+    lat: 52.4083,
+    lng: 16.9335,
+  },
+  {
+    id: "demo-poznan-cytadela",
+    title: "Walk in Cytadela Park",
+    category: "Outdoor & Active",
+    date: "Tomorrow · 11:00",
+    people: "5 people",
+    attendeesCount: 5,
+    maxParticipants: 10,
+    price: "Free",
+    description:
+      "Join us for a relaxed walk through Cytadela Park. Bring comfortable shoes and enjoy the fresh air.",
+    address: "Cytadela Park, Poznań",
+    host: "Kamil Zieliński",
+    participants: ["Kamil Zieliński", "Ola Wiśniewska", "Alex Morgan", "Sam Lee", "Maja Nowak"],
+    lat: 52.4275,
+    lng: 16.9528,
+  },
+  {
+    id: "demo-poznan-malta",
+    title: "Sunset by Lake Malta",
+    category: "Sightseeing",
+    date: "Saturday · 18:30",
+    people: "2 people",
+    attendeesCount: 2,
+    maxParticipants: 8,
+    price: "Free",
+    description:
+      "Watch the sunset by Lake Malta and meet new people. Feel free to bring a snack to share.",
+    address: "Lake Malta, Poznań",
+    host: "Julia Kowalska",
+    participants: ["Julia Kowalska", "Alex Morgan"],
+    lat: 52.4009,
+    lng: 16.973,
+  },
+];

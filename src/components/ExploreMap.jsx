@@ -1,7 +1,9 @@
-import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Pane, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { renderToString } from 'react-dom/server';
+import { POZNAN_CENTER } from '../data/demoEvents';
+import EventPreviewCard from './events/EventPreviewCard';
 import {
   Activity,
   Camera,
@@ -78,6 +80,14 @@ function MapController({ center }) {
 function MapClickHandler({ onMapClick }) {
   useMapEvents({
     click: (e) => {
+      if (
+        e.originalEvent.target.closest(
+          '.custom-map-marker, .event-preview-overlay',
+        )
+      ) {
+        return;
+      }
+
       if (onMapClick) {
         onMapClick(e.latlng);
       }
@@ -86,8 +96,78 @@ function MapClickHandler({ onMapClick }) {
   return null;
 }
 
-export default function ExploreMap({ isDark = true, center, events = [], onMapClick }) {
-  const defaultCenter = [40.730610, -73.935242];
+function EventPreviewOverlay({
+  event,
+  isDark,
+  participantCount,
+  isJoined,
+  onClose,
+  onSeeMore,
+  onJoin,
+}) {
+  const map = useMap();
+  const [position, setPosition] = useState(null);
+
+  useEffect(() => {
+    if (!event) return undefined;
+
+    const updatePosition = () => {
+      const point = map.latLngToContainerPoint([event.lat, event.lng]);
+      setPosition({
+        left: Math.min(Math.max(point.x, 150), map.getSize().x - 150),
+        top: point.y,
+        showBelow: point.y < 250,
+      });
+    };
+
+    updatePosition();
+    map.on('move zoom resize', updatePosition);
+    return () => map.off('move zoom resize', updatePosition);
+  }, [event, map]);
+
+  if (!event || !position) return null;
+
+  return (
+    <Pane name="eventPreviewPane" style={{ zIndex: 710, pointerEvents: 'none' }}>
+      <div
+        className="event-preview-overlay absolute"
+        style={{
+          left: position.left,
+          top: position.top,
+          pointerEvents: 'auto',
+          transform: position.showBelow
+            ? 'translate(-50%, 24px)'
+            : 'translate(-50%, calc(-100% - 24px))',
+        }}
+      >
+        <EventPreviewCard
+          event={event}
+          isDark={isDark}
+          participantCount={participantCount}
+          isJoined={isJoined}
+          onClose={onClose}
+          onSeeMore={onSeeMore}
+          onJoin={onJoin}
+        />
+      </div>
+    </Pane>
+  );
+}
+
+export default function ExploreMap({
+  isDark = true,
+  center,
+  events = [],
+  participantCounts = {},
+  joinedEventIds = new Set(),
+  onMapClick,
+  previewEvent,
+  onEventSelect,
+  onCloseEventPreview,
+  onEventDetails,
+  onJoinEvent,
+}) {
+  const defaultCenter = POZNAN_CENTER;
   const activeCenter = center || defaultCenter;
 
   const baseTileUrl = API_KEY 
@@ -104,6 +184,17 @@ export default function ExploreMap({ isDark = true, center, events = [], onMapCl
       >
         <MapController center={center} />
         <MapClickHandler onMapClick={onMapClick} />
+        <EventPreviewOverlay
+          event={previewEvent}
+          isDark={isDark}
+          participantCount={
+            previewEvent ? participantCounts[previewEvent.id] : undefined
+          }
+          isJoined={previewEvent ? joinedEventIds.has(previewEvent.id) : false}
+          onClose={onCloseEventPreview}
+          onSeeMore={onEventDetails}
+          onJoin={onJoinEvent}
+        />
 
         <TileLayer
           key={isDark ? 'dark-map-layer' : 'light-map-layer'}
@@ -119,16 +210,9 @@ export default function ExploreMap({ isDark = true, center, events = [], onMapCl
             key={evt.id} 
             position={[evt.lat, evt.lng]} 
             icon={createCustomIcon(evt.category || evt.type, isDark)}
+            bubblingMouseEvents={false}
+            eventHandlers={{ click: () => onEventSelect(evt) }}
           >
-            <Popup>
-              <div className="p-1 font-sans min-w-[140px]">
-                <span className="text-[10px] font-bold tracking-wider text-[#ff7fc0] uppercase">
-                  {evt.category || 'Event'}
-                </span>
-                <h4 className="font-bold text-sm text-gray-900 mt-0.5">{evt.title}</h4>
-                <p className="text-xs text-gray-500 mt-1">{evt.date || 'Today'} • {evt.people || 'Open'}</p>
-              </div>
-            </Popup>
           </Marker>
         ))}
       </MapContainer>

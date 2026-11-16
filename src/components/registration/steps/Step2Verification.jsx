@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import { PrimaryButton, StepHeading } from "../RegistrationUI";
 
 const Step2Verification = ({ email, onSuccess }) => {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
@@ -62,14 +63,9 @@ const Step2Verification = ({ email, onSuccess }) => {
 
   return (
     <>
-      <div className="mb-5 flex h-[90px] w-full flex-col items-center gap-1.5">
-        <h1 className="m-0 text-center text-[56px] leading-[1.1] font-bold text-ink dark:text-white">
-          Almost There
-        </h1>
-        <p className="m-0 text-center text-base font-normal text-ink dark:text-white">
-          Please enter the 6-digit code sent to your email for verification.
-        </p>
-      </div>
+      <StepHeading title="Almost There">
+        Please enter the 6-digit code sent to your email for verification.
+      </StepHeading>
 
       <form
         onSubmit={handleVerify}
@@ -152,12 +148,7 @@ const Step2Verification = ({ email, onSuccess }) => {
 
         {/* Кнопка снизу */}
         <div className="absolute inset-x-0 bottom-10 flex h-[86px] flex-col items-center justify-start">
-          <button
-            type="submit"
-            className="flex h-14 w-[295px] max-w-full items-center justify-center rounded-3xl border-0 bg-[linear-gradient(90deg,#ff7fc0_0%,#ff813e_100%)] text-xl font-medium text-white transition-[transform,opacity] duration-150 hover:opacity-95 active:scale-[0.98] dark:bg-[linear-gradient(135deg,#ff7fc0_0%,#ff813e_100%)] dark:text-[#141414]"
-          >
-            {codeStatus === "error" ? "Retry verification" : "Next"}
-          </button>
+          <PrimaryButton type="submit">{codeStatus === "error" ? "Retry verification" : "Next"}</PrimaryButton>
 
           <p className="mt-2 text-center text-[15px] font-normal text-ink dark:text-white">
             Didn't receive any code?

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { PrimaryButton, StepHeading } from "../RegistrationUI";
 
 const Step7Location = ({ onNext, initialData }) => {
   const [locationEnabled, setLocationEnabled] = useState(
@@ -56,14 +57,9 @@ const Step7Location = ({ onNext, initialData }) => {
 
   return (
     <>
-      <div className="mb-5 flex h-[90px] w-full flex-col items-center gap-1.5">
-        <h1 className="m-0 text-center text-[56px] leading-[1.1] font-bold text-ink dark:text-white">
-          Your Location
-        </h1>
-        <p className="m-0 text-center text-base font-normal text-ink dark:text-white">
-          Enable your location to discover people nearby.
-        </p>
-      </div>
+      <StepHeading title="Your Location">
+        Enable your location to discover people nearby.
+      </StepHeading>
 
       <div className="my-auto flex w-[329px] max-w-full flex-col items-center">
         {/* Иконка локации в круглом фоне */}
@@ -196,13 +192,7 @@ const Step7Location = ({ onNext, initialData }) => {
 
         {/* Нижний зафиксированный блок с кнопками */}
         <div className="absolute inset-x-0 bottom-10 flex h-[86px] flex-col items-center justify-start">
-          <button
-            type="button"
-            className="flex h-14 w-[295px] max-w-full items-center justify-center rounded-3xl border-0 bg-[linear-gradient(90deg,#ff7fc0_0%,#ff813e_100%)] text-xl font-medium text-white transition-[transform,opacity] duration-150 hover:opacity-95 active:scale-[0.98] dark:bg-[linear-gradient(135deg,#ff7fc0_0%,#ff813e_100%)] dark:text-[#141414]"
-            onClick={handleNext}
-          >
-            Next
-          </button>
+          <PrimaryButton type="button" onClick={handleNext}>Next</PrimaryButton>
 
           <div className="mt-2.5 flex items-baseline justify-center gap-4">
             <button

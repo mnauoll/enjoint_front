@@ -23,8 +23,8 @@ export default function AppHeader({
           <input
             type="text"
             aria-label="Location"
-            placeholder="New York, NY"
-            defaultValue="New York, NY"
+            placeholder="Poznań, Poland"
+            defaultValue="Poznań, Poland"
             className="w-full bg-transparent font-sans text-sm text-[#262626] outline-none placeholder:text-[#262626]/60 dark:text-white dark:placeholder:text-white/60"
           />
           <button
