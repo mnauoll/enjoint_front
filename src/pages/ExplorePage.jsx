@@ -11,9 +11,24 @@ import {
   getEventParticipantCount,
 } from '../components/events/eventUtils';
 
-export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDark }) {
+export default function ExplorePage({
+  isDark: propIsDark,
+  setIsDark: propSetIsDark,
+  activeTab: propActiveTab,
+  onTabChange: propOnTabChange,
+  events: propEvents,
+  joinedEventIds: propJoinedEventIds,
+  onCreatedEvent: propOnCreatedEvent,
+  onJoinEvent: propOnJoinEvent,
+  onOpenChat: propOnOpenChat,
+  shouldOpenCreateEvent = false,
+  onCreateEventRequestHandled,
+}) {
   const [localIsDark, setLocalIsDark] = useState(true);
   const isDark = propIsDark !== undefined ? propIsDark : localIsDark;
+  const [localActiveTab, setLocalActiveTab] = useState('Explore Map');
+  const activeTab = propActiveTab ?? localActiveTab;
+  const changeTab = propOnTabChange ?? setLocalActiveTab;
 
   const toggleTheme = () => {
     if (propSetIsDark) propSetIsDark(!isDark);
@@ -26,16 +41,18 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
   }, [isDark]);
 
   const [userLocation, setUserLocation] = useState(null);
-  const [events, setEvents] = useState(DEMO_EVENTS);
+  const [localEvents, setLocalEvents] = useState(DEMO_EVENTS);
+  const events = propEvents ?? localEvents;
   const [previewEvent, setPreviewEvent] = useState(null);
   const [activeEvent, setActiveEvent] = useState(null);
-  const [joinedEventIds, setJoinedEventIds] = useState(() => new Set());
   const [participantCounts, setParticipantCounts] = useState({});
+  const [localJoinedEventIds, setLocalJoinedEventIds] = useState(() => new Set());
+  const joinedEventIds = propJoinedEventIds ?? localJoinedEventIds;
   const [joinedEvent, setJoinedEvent] = useState(null);
-  const [activeTab, setActiveTab] = useState('Explore Map');
 
   // Модальное окно пошагового создания
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLocallyModalOpen, setIsLocallyModalOpen] = useState(false);
+  const isModalOpen = isLocallyModalOpen || shouldOpenCreateEvent;
   const [tempCoords, setTempCoords] = useState(null);
   const [isPickingEventLocation, setIsPickingEventLocation] = useState(false);
   const [hasPickedEventLocation, setHasPickedEventLocation] = useState(false);
@@ -107,12 +124,12 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
     if (isPickingEventLocation) {
       setIsPickingEventLocation(false);
       setHasPickedEventLocation(true);
-      setIsModalOpen(true);
+      setIsLocallyModalOpen(true);
       return;
     }
 
     setHasPickedEventLocation(true);
-    setIsModalOpen(true);
+    setIsLocallyModalOpen(true);
   };
 
   const handleOpenAddModal = () => {
@@ -123,21 +140,27 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
     setPickedEventAddress('');
     setIsResolvingEventAddress(false);
     setEventAddressLookupFailed(false);
-    setIsModalOpen(true);
+    setIsLocallyModalOpen(true);
   };
 
   const handlePickEventLocation = () => {
-    setIsModalOpen(false);
+    setIsLocallyModalOpen(false);
+    onCreateEventRequestHandled?.();
     setIsPickingEventLocation(true);
   };
 
   const handleCancelPickingLocation = () => {
     setIsPickingEventLocation(false);
-    setIsModalOpen(true);
+    setIsLocallyModalOpen(true);
+    onCreateEventRequestHandled?.();
   };
 
   const handleCreatedEvent = (newEvent) => {
-    setEvents((prev) => [...prev, newEvent]);
+    if (propOnCreatedEvent) {
+      propOnCreatedEvent(newEvent);
+    } else {
+      setLocalEvents((prev) => [...prev, newEvent]);
+    }
   };
 
   const handleJoinEvent = (event) => {
@@ -149,7 +172,11 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
 
     const joinedCount = participantCount + 1;
     setParticipantCounts((counts) => ({ ...counts, [event.id]: joinedCount }));
-    setJoinedEventIds((ids) => new Set(ids).add(event.id));
+    if (propOnJoinEvent) {
+      propOnJoinEvent(event);
+    } else {
+      setLocalJoinedEventIds((ids) => new Set(ids).add(event.id));
+    }
     setPreviewEvent(null);
     setActiveEvent(null);
     setJoinedEvent({ ...event, joinedCount });
@@ -201,7 +228,7 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
         <AppHeader
           fixed
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={changeTab}
           isDark={isDark}
         />
 
@@ -289,7 +316,8 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
       <CreateEventModal
         isOpen={isModalOpen}
         onClose={() => {
-          setIsModalOpen(false);
+          setIsLocallyModalOpen(false);
+          onCreateEventRequestHandled?.();
           setIsPickingEventLocation(false);
         }}
         onCreatedEvent={handleCreatedEvent}
@@ -306,6 +334,10 @@ export default function ExplorePage({ isDark: propIsDark, setIsDark: propSetIsDa
           event={joinedEvent}
           isDark={isDark}
           onClose={() => setJoinedEvent(null)}
+          onOpenChat={() => {
+            setJoinedEvent(null);
+            propOnOpenChat?.(joinedEvent);
+          }}
         />
       )}
 

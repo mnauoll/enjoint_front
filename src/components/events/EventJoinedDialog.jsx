@@ -1,7 +1,7 @@
 import { CheckCircle2, MessageCircle, X } from "lucide-react";
 import { getEventParticipantCount } from "./eventUtils";
 
-export default function EventJoinedDialog({ event, isDark, onClose }) {
+export default function EventJoinedDialog({ event, isDark, onClose, onOpenChat }) {
   const participantCount = getEventParticipantCount(event, event.joinedCount);
 
   return (
@@ -55,6 +55,7 @@ export default function EventJoinedDialog({ event, isDark, onClose }) {
 
         <button
           className="mt-4 h-11 w-full rounded-full bg-gradient-to-r from-[#ff7fc0] to-[#ff813e] text-sm font-bold text-[#171717] transition hover:brightness-105 active:scale-[0.99]"
+          onClick={onOpenChat}
           type="button"
         >
           Open chat

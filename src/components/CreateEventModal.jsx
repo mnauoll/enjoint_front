@@ -11,21 +11,9 @@ import {
   MapPin,
   X,
 } from 'lucide-react';
+import { EVENT_TYPES } from '../data/eventTypes';
 
 const STEPS = ['Basics', 'Date & time', 'Location', 'People', 'Review'];
-const EVENT_TYPES = [
-  'Food & Drinks',
-  'Nightlife',
-  'Outdoor & Active',
-  'Sightseeing',
-  'Entertainment',
-  'Shopping',
-  'Wellness',
-  'Social',
-  'Rideshare',
-  'Other',
-];
-
 const INPUT_CLASS =
   'w-full rounded-full border border-transparent bg-[#f1f3f5] px-4 text-xs text-[#262626] outline-none transition placeholder:text-[#858991] focus:border-[#ff7fc0] focus:ring-2 focus:ring-[#ff7fc0]/20 dark:bg-[#202630] dark:text-white dark:placeholder:text-white/45';
 const LABEL_CLASS = 'block font-medium text-[#686b73] dark:text-white/65';

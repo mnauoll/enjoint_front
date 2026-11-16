@@ -96,6 +96,17 @@ function MapClickHandler({ onMapClick }) {
   return null;
 }
 
+function SelectedLocationMarker({ position }) {
+  if (!position) return null;
+  const icon = L.divIcon({
+    html: '<div style="width:22px;height:22px;border:4px solid white;border-radius:50%;background:#ff65ac;box-shadow:0 2px 12px rgba(0,0,0,.4)"></div>',
+    className: "custom-map-marker",
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+  });
+  return <Marker position={position} icon={icon} />;
+}
+
 function EventPreviewOverlay({
   event,
   isDark,
@@ -166,6 +177,9 @@ export default function ExploreMap({
   onCloseEventPreview,
   onEventDetails,
   onJoinEvent,
+  selectionMode = false,
+  selectedLocation,
+  onLocationSelect,
 }) {
   const defaultCenter = POZNAN_CENTER;
   const activeCenter = center || defaultCenter;
@@ -183,18 +197,20 @@ export default function ExploreMap({
         className="w-full h-full z-0"
       >
         <MapController center={center} />
-        <MapClickHandler onMapClick={onMapClick} />
-        <EventPreviewOverlay
-          event={previewEvent}
-          isDark={isDark}
-          participantCount={
-            previewEvent ? participantCounts[previewEvent.id] : undefined
-          }
-          isJoined={previewEvent ? joinedEventIds.has(previewEvent.id) : false}
-          onClose={onCloseEventPreview}
-          onSeeMore={onEventDetails}
-          onJoin={onJoinEvent}
-        />
+        <MapClickHandler onMapClick={selectionMode ? onLocationSelect : onMapClick} />
+        {!selectionMode && (
+          <EventPreviewOverlay
+            event={previewEvent}
+            isDark={isDark}
+            participantCount={
+              previewEvent ? participantCounts[previewEvent.id] : undefined
+            }
+            isJoined={previewEvent ? joinedEventIds.has(previewEvent.id) : false}
+            onClose={onCloseEventPreview}
+            onSeeMore={onEventDetails}
+            onJoin={onJoinEvent}
+          />
+        )}
 
         <TileLayer
           key={isDark ? 'dark-map-layer' : 'light-map-layer'}
@@ -205,7 +221,7 @@ export default function ExploreMap({
         />
 
         {/* Динамические маркеры событий */}
-        {events.map((evt) => (
+        {selectionMode ? <SelectedLocationMarker position={selectedLocation} /> : events.map((evt) => (
           <Marker 
             key={evt.id} 
             position={[evt.lat, evt.lng]} 

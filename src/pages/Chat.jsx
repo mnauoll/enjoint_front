@@ -49,17 +49,41 @@ const initialConversations = [
 
 const STORAGE_KEY = 'enjoint-chat-conversations';
 
-function loadConversations() {
+function loadConversations(chatRequest) {
+  let conversations = initialConversations;
   try {
     const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (!saved) return initialConversations;
+    if (!saved) conversations = initialConversations;
+    else {
     const parsed = JSON.parse(saved);
-    if (Array.isArray(parsed) && parsed.every((item) => item && typeof item.id === 'string' && Array.isArray(item.messages))) return parsed;
-    console.error('Saved chat data is invalid; loading sample conversations instead.');
+      if (Array.isArray(parsed) && parsed.every((item) => item && typeof item.id === 'string' && Array.isArray(item.messages))) {
+        conversations = parsed;
+      } else {
+        console.error('Saved chat data is invalid; loading sample conversations instead.');
+      }
+    }
   } catch (error) {
     console.error('Unable to load saved chat conversations:', error);
   }
-  return initialConversations;
+
+  if (!chatRequest) return conversations;
+  const existing = conversations.find(({ id }) => id === chatRequest.id);
+  if (!existing) return [{ ...chatRequest, messages: chatRequest.messages || [] }, ...conversations];
+
+  return conversations.map((conversation) =>
+    conversation.id === chatRequest.id
+      ? {
+          ...chatRequest,
+          ...existing,
+          title: chatRequest.title,
+          initials: chatRequest.initials,
+          subtitle: chatRequest.subtitle,
+          eventDate: chatRequest.eventDate,
+          eventPlace: chatRequest.eventPlace,
+          notice: chatRequest.notice,
+        }
+      : conversation,
+  );
 }
 
 function currentTime() {
@@ -81,13 +105,20 @@ function getInitialTheme() {
   }
 }
 
-export default function Chat() {
-  const [conversations, setConversations] = useState(loadConversations);
-  const [kind, setKind] = useState('group');
-  const [selectedId, setSelectedId] = useState('central-park');
+export default function Chat({
+  isDark: propIsDark,
+  setIsDark: propSetIsDark,
+  onTabChange,
+  chatRequest,
+  onChatRequestHandled,
+}) {
+  const [conversations, setConversations] = useState(() => loadConversations(chatRequest));
+  const [kind, setKind] = useState(chatRequest?.kind || 'group');
+  const [selectedId, setSelectedId] = useState(chatRequest?.id || 'central-park');
   const [search, setSearch] = useState('');
   const [draft, setDraft] = useState('');
-  const [isDark, setIsDark] = useState(getInitialTheme);
+  const [localIsDark, setLocalIsDark] = useState(getInitialTheme);
+  const isDark = propIsDark ?? localIsDark;
   const [eventOpen, setEventOpen] = useState(false);
   const messageListRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -99,6 +130,10 @@ export default function Chat() {
       console.error('Unable to save chat conversations:', error);
     }
   }, [conversations]);
+
+  useEffect(() => {
+    if (chatRequest) onChatRequestHandled?.();
+  }, [chatRequest, onChatRequestHandled]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark);
@@ -171,8 +206,12 @@ export default function Chat() {
     <main className="flex h-[100dvh] w-full flex-col overflow-hidden bg-[#F7F8FA] font-rubik text-[#262626] transition-colors dark:bg-[#1A212B] dark:text-white">
       <AppHeader
         activeTab="Chat"
+        onTabChange={onTabChange}
         isDark={isDark}
-        onToggleTheme={() => setIsDark((current) => !current)}
+        onToggleTheme={() => {
+          if (propSetIsDark) propSetIsDark((current) => !current);
+          else setLocalIsDark((current) => !current);
+        }}
         action="theme"
       />
 
