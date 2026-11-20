@@ -202,6 +202,7 @@ export default function FriendsPage({
         fixed
         isDark={isDark}
         onTabChange={onTabChange}
+        onToggleTheme={() => setIsDark((current) => !current)}
       />
 
       <div className="mx-auto flex min-h-screen w-full max-w-[1180px] flex-col gap-3 px-5 pb-8 pt-[98px] max-[560px]:px-3">
@@ -346,14 +347,6 @@ export default function FriendsPage({
         />
       )}
 
-      <button
-        aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
-        className="fixed bottom-5 right-5 z-30 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold shadow-lg transition hover:-translate-y-0.5 dark:border-[#303843] dark:bg-[#11161d]"
-        onClick={() => setIsDark((current) => !current)}
-        type="button"
-      >
-        {isDark ? "Light theme" : "Dark theme"}
-      </button>
     </main>
   );
 }

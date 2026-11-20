@@ -69,7 +69,7 @@ export default function EventPreviewCard({
         <span className={isDark ? "text-white/60" : "text-gray-500"}>
           {participantCount} / {capacity} people · {Math.max(0, capacity - participantCount)} spots left
         </span>
-        <span className="font-semibold">{getEventPrice(event)}</span>
+        <span className="font-semibold">{event.womenOnly ? "Women only" : getEventPrice(event)}</span>
       </div>
 
       <div className="mt-3 flex gap-2">

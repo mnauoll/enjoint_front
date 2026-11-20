@@ -2,7 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 
-export default function EventTypeSelect({ id, label, value, onChange, options, isDark }) {
+export default function EventTypeSelect({
+  id,
+  label,
+  value,
+  onChange,
+  options,
+  isDark,
+  variant = "default",
+}) {
+  const isHeader = variant === "header";
   const [isOpen, setIsOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState(null);
   const containerRef = useRef(null);
@@ -70,7 +79,13 @@ export default function EventTypeSelect({ id, label, value, onChange, options, i
           aria-expanded={isOpen}
           aria-haspopup="listbox"
           className={`flex h-10 w-full items-center justify-between rounded-full border px-4 pr-10 text-left text-xs outline-none transition focus:border-[#ff7fc0] ${
-            isDark ? "border-[#69495c] bg-[#382a35] text-white" : "border-[#efd3df] bg-white/80 text-[#262626]"
+            isHeader
+              ? isDark
+                ? "border-white/10 bg-[#202630] text-white"
+                : "border-gray-200 bg-gray-50 text-[#262626]"
+              : isDark
+                ? "border-[#69495c] bg-[#382a35] text-white"
+                : "border-[#efd3df] bg-white/80 text-[#262626]"
           }`}
           id={id}
           onClick={() => setIsOpen((open) => !open)}
@@ -94,7 +109,13 @@ export default function EventTypeSelect({ id, label, value, onChange, options, i
         <div
           aria-labelledby={`${id}-label`}
           className={`fixed z-[1200] overflow-y-auto rounded-[14px] border p-[5px] shadow-xl ${
-            isDark ? "border-white/10 bg-[#382a35]" : "border-[#efd3df] bg-white"
+            isHeader
+              ? isDark
+                ? "border-white/10 bg-[#1A212B]"
+                : "border-gray-200 bg-white"
+              : isDark
+                ? "border-white/10 bg-[#382a35]"
+                : "border-[#efd3df] bg-white"
           }`}
           id={`${id}-options`}
           ref={menuRef}

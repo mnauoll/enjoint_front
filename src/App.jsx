@@ -4,12 +4,26 @@ import ExplorePage from "./pages/ExplorePage";
 import FriendsPage from "./pages/FriendsPage";
 import MyEventsPage from "./pages/MyEventsPage";
 import SettingsPage from "./pages/SettingsPage";
-import { getEventParticipantCount } from "./components/events/eventUtils";
+import {
+  getEventParticipantCount,
+  isEventVisibleToGender,
+} from "./components/events/eventUtils";
 import { DEMO_EVENTS } from "./data/demoEvents";
+
+function getSavedProfileGender() {
+  try {
+    const savedProfile = window.localStorage.getItem("enjoint-profile");
+    return savedProfile ? JSON.parse(savedProfile).gender || "Man" : "Man";
+  } catch (error) {
+    console.error("Unable to load saved profile gender:", error);
+    return "Man";
+  }
+}
 
 function App() {
   const [activeTab, setActiveTab] = useState("Explore Map");
   const [events, setEvents] = useState(DEMO_EVENTS);
+  const [userGender, setUserGender] = useState(getSavedProfileGender);
   const [joinedEventIds, setJoinedEventIds] = useState(() => new Set());
   const [shouldOpenCreateEvent, setShouldOpenCreateEvent] = useState(false);
   const [chatRequest, setChatRequest] = useState(null);
@@ -132,7 +146,8 @@ function App() {
     setActiveTab("Chat");
   };
 
-  const inviteableEvents = events.filter(
+  const visibleEvents = events.filter((event) => isEventVisibleToGender(event, userGender));
+  const inviteableEvents = visibleEvents.filter(
     (event) => event.createdByUser || joinedEventIds.has(event.id),
   );
 
@@ -148,7 +163,7 @@ function App() {
         />
       ) : activeTab === "My Events" ? (
         <MyEventsPage
-          events={events}
+          events={visibleEvents}
           joinedEventIds={joinedEventIds}
           isDark={isDark}
           setIsDark={setIsDark}
@@ -168,6 +183,7 @@ function App() {
           isDark={isDark}
           setIsDark={setIsDark}
           onTabChange={setActiveTab}
+          onProfileSaved={(profile) => setUserGender(profile.gender)}
         />
       ) : activeTab === "Chat" ? (
         <Chat
@@ -180,7 +196,7 @@ function App() {
       ) : (
         <ExplorePage
           activeTab={activeTab}
-          events={events}
+          events={visibleEvents}
           joinedEventIds={joinedEventIds}
           onCreatedEvent={handleCreatedEvent}
           onJoinEvent={handleJoinEvent}

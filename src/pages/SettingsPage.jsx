@@ -157,7 +157,7 @@ function Toggle({ checked, onChange, label }) {
   );
 }
 
-export default function SettingsPage({ isDark, setIsDark, onTabChange }) {
+export default function SettingsPage({ isDark, setIsDark, onTabChange, onProfileSaved }) {
   const [activeSection, setActiveSection] = useState("profile");
   const [savedProfile, setSavedProfile] = useState(() => readStorage(PROFILE_STORAGE_KEY, PROFILE_DEFAULTS));
   const [profile, setProfile] = useState(savedProfile);
@@ -223,6 +223,7 @@ export default function SettingsPage({ isDark, setIsDark, onTabChange }) {
       const profileToSave = { ...profile, photo: profilePhoto };
       writeStorage(PROFILE_STORAGE_KEY, profileToSave);
       setSavedProfile(profileToSave);
+      onProfileSaved?.(profileToSave);
       setStatus("Profile changes saved.");
       setError("");
     } catch (saveError) {
@@ -355,7 +356,13 @@ export default function SettingsPage({ isDark, setIsDark, onTabChange }) {
 
   return (
     <main className="min-h-screen bg-[#f7f8fa] font-rubik text-[#262626] transition-colors dark:bg-[#0b0f14] dark:text-white">
-      <AppHeader activeTab="Settings" fixed isDark={isDark} onTabChange={onTabChange} />
+      <AppHeader
+        activeTab="Settings"
+        fixed
+        isDark={isDark}
+        onTabChange={onTabChange}
+        onToggleTheme={() => handleThemeChange(isDark ? "light" : "dark")}
+      />
       <div className="mx-auto flex min-h-screen w-full max-w-[1180px] flex-col gap-4 px-5 pb-10 pt-[98px] max-[560px]:px-3">
         <header>
           <h1 className="text-2xl font-bold">Settings</h1>

@@ -126,7 +126,7 @@ export default function EventDetailsPanel({
             <span>
               {participantCount} / {capacity} people
             </span>
-            <span className="font-semibold">· {getEventPrice(event)}</span>
+            <span className="font-semibold">· {event.womenOnly ? "Women only" : getEventPrice(event)}</span>
           </div>
         </div>
 
@@ -155,7 +155,7 @@ export default function EventDetailsPanel({
             )}
           </div>
           <p className={`mt-2 text-[10px] ${isDark ? "text-white/55" : "text-gray-500"}`}>
-            All genders · Ages 18+
+            {event.womenOnly ? "Women only" : "All genders"} · Ages 18+
           </p>
         </section>
 

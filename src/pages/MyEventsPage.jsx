@@ -63,7 +63,7 @@ function EventSummary({ event, isDark, history = false }) {
       <p className={`mt-2 text-[10px] sm:text-xs ${mutedText}`}>
         {participants} {history ? "attendees" : ` / ${getEventCapacity(event)} people`}
         {" · "}
-        {getEventPrice(event)}
+        {event.womenOnly ? "Women only" : getEventPrice(event)}
         {" · Hosted by "}
         {event.host || (event.createdByUser ? "Alex Morgan" : "Event host")}
       </p>
@@ -121,6 +121,7 @@ function EventEditDialog({ event, isDark, onClose, onSave }) {
     category: event.category || event.type || "",
     people: event.people || String(event.maxParticipants || ""),
     price: event.price || "Free",
+    womenOnly: event.womenOnly || false,
     comments: event.comments || "",
     lat: event.lat ?? POZNAN_CENTER[0],
     lng: event.lng ?? POZNAN_CENTER[1],
@@ -146,7 +147,7 @@ function EventEditDialog({ event, isDark, onClose, onSave }) {
 
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=en`,
       );
       if (!response.ok) throw new Error(`Address lookup failed with status ${response.status}`);
       const result = await response.json();
@@ -231,7 +232,6 @@ function EventEditDialog({ event, isDark, onClose, onSave }) {
         </div>
         {[
           ["people", "Maximum people"],
-          ["price", "Price"],
         ].map(([field, label]) => (
           <label className="grid gap-1 text-xs font-medium" key={field}>
             {label}
@@ -244,6 +244,25 @@ function EventEditDialog({ event, isDark, onClose, onSave }) {
             />
           </label>
         ))}
+        <div className={`flex h-11 self-end items-center justify-between rounded-xl border px-3 text-xs font-medium ${
+          isDark ? "border-[#69495c] bg-[#382a35]" : "border-[#efd3df] bg-white/80"
+        }`}>
+          <span>Women only</span>
+          <button
+            aria-checked={values.womenOnly}
+            aria-label="Women only"
+            className={`relative h-5 w-10 shrink-0 rounded-full transition ${
+              values.womenOnly ? "bg-[#ff65ac]" : "bg-gray-300 dark:bg-[#343c47]"
+            }`}
+            onClick={() => update("womenOnly", !values.womenOnly)}
+            role="switch"
+            type="button"
+          >
+            <span className={`absolute top-0.5 size-4 rounded-full bg-white shadow transition-all ${
+              values.womenOnly ? "left-[22px]" : "left-0.5"
+            }`} />
+          </button>
+        </div>
         <label className="grid gap-1 text-xs font-medium sm:col-span-2">
           Description
           <textarea
@@ -479,7 +498,13 @@ export default function MyEventsPage({
 
   return (
     <main className="min-h-screen bg-[#f7f8fa] font-rubik text-[#262626] transition-colors dark:bg-[#0b0f14] dark:text-white">
-      <AppHeader activeTab="My Events" fixed isDark={isDark} onTabChange={onTabChange} />
+      <AppHeader
+        activeTab="My Events"
+        fixed
+        isDark={isDark}
+        onTabChange={onTabChange}
+        onToggleTheme={() => setIsDark((current) => !current)}
+      />
       <div className="mx-auto flex min-h-screen w-full max-w-[1180px] flex-col gap-4 px-5 pb-10 pt-[98px] max-[560px]:px-3">
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -560,15 +585,6 @@ export default function MyEventsPage({
           </p>
         )}
       </div>
-
-      <button
-        aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
-        className="fixed bottom-5 right-5 z-30 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold shadow-lg transition hover:-translate-y-0.5 dark:border-[#303843] dark:bg-[#11161d]"
-        onClick={() => setIsDark((current) => !current)}
-        type="button"
-      >
-        {isDark ? "Light theme" : "Dark theme"}
-      </button>
 
       {selectedEvent && (
         <EventDetailsDialog event={selectedEvent} isDark={isDark} onClose={() => setSelectedEvent(null)} />

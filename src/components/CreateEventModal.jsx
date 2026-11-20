@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   CalendarDays,
@@ -14,6 +14,19 @@ import {
 import { EVENT_TYPES } from '../data/eventTypes';
 
 const STEPS = ['Basics', 'Date & time', 'Location', 'People', 'Review'];
+const EMPTY_EVENT_FORM = {
+  title: '',
+  description: '',
+  date: '',
+  time: '',
+  city: '',
+  address: '',
+  people: '',
+  type: '',
+  womenOnly: false,
+  comments: '',
+  photo: null,
+};
 const INPUT_CLASS =
   'w-full rounded-full border border-transparent bg-[#f1f3f5] px-4 text-xs text-[#262626] outline-none transition placeholder:text-[#858991] focus:border-[#ff7fc0] focus:ring-2 focus:ring-[#ff7fc0]/20 dark:bg-[#202630] dark:text-white dark:placeholder:text-white/45';
 const LABEL_CLASS = 'block font-medium text-[#686b73] dark:text-white/65';
@@ -30,7 +43,21 @@ function parseEventDate(value) {
   const [day, month, year] = value.split('.').map(Number);
   if (!day || !month || !year) return null;
   const parsed = new Date(year, month - 1, day);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+  return parsed;
+}
+
+function getTodayDate() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
 }
 
 function formatEventDate(date) {
@@ -38,7 +65,18 @@ function formatEventDate(date) {
   return `${String(day).padStart(2, '0')}.${String(month + 1).padStart(2, '0')}.${year}`;
 }
 
-function Field({ id, label, value, onChange, placeholder, isDark, type = 'text' }) {
+function Field({
+  id,
+  label,
+  value,
+  onChange,
+  placeholder,
+  isDark,
+  type = 'text',
+  min,
+  inputMode,
+  required = false,
+}) {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
@@ -58,6 +96,9 @@ function Field({ id, label, value, onChange, placeholder, isDark, type = 'text' 
       <input
         className={INPUT_CLASS}
         id={id}
+        aria-required={required}
+        inputMode={inputMode}
+        min={min}
         onChange={(event) => onChange(event.target.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
@@ -83,7 +124,7 @@ function Field({ id, label, value, onChange, placeholder, isDark, type = 'text' 
   );
 }
 
-function SelectField({ id, label, value, onChange, options, isDark }) {
+function SelectField({ id, label, value, onChange, options, isDark, required = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState(null);
   const containerRef = useRef(null);
@@ -176,6 +217,7 @@ function SelectField({ id, label, value, onChange, options, isDark }) {
           aria-controls={`${id}-options`}
           aria-expanded={isOpen}
           aria-haspopup="listbox"
+          aria-required={required}
           className={INPUT_CLASS}
           onClick={() => setIsOpen((open) => !open)}
           onKeyDown={(event) => {
@@ -301,6 +343,12 @@ function SelectField({ id, label, value, onChange, options, isDark }) {
 function WheelColumn({ label, values, value, onChange, isDark }) {
   const rowHeight = 40;
   const selectedIndex = values.indexOf(value);
+  const columnRef = useRef(null);
+
+  useEffect(() => {
+    if (!columnRef.current || selectedIndex < 0) return;
+    columnRef.current.scrollTop = selectedIndex * rowHeight;
+  }, [selectedIndex]);
 
   return (
     <div style={{ minWidth: 0, flex: 1, textAlign: 'center' }}>
@@ -324,12 +372,7 @@ function WheelColumn({ label, values, value, onChange, isDark }) {
           );
           if (values[index] !== value) onChange(values[index]);
         }}
-        ref={(element) => {
-          if (element && selectedIndex >= 0 && element.dataset.initialized !== 'true') {
-            element.scrollTop = selectedIndex * rowHeight;
-            element.dataset.initialized = 'true';
-          }
-        }}
+        ref={columnRef}
         style={{
           height: rowHeight * 3,
           overflowY: 'auto',
@@ -341,11 +384,14 @@ function WheelColumn({ label, values, value, onChange, isDark }) {
           touchAction: 'pan-y',
         }}
       >
-        {values.map((item) => (
+        {values.map((item, index) => (
           <button
             aria-pressed={item === value}
             key={item}
-            onClick={() => onChange(item)}
+            onClick={() => {
+              onChange(item);
+              if (columnRef.current) columnRef.current.scrollTop = index * rowHeight;
+            }}
             style={{
               display: 'block',
               boxSizing: 'border-box',
@@ -370,7 +416,16 @@ function WheelColumn({ label, values, value, onChange, isDark }) {
   );
 }
 
-function PickerField({ id, label, value, placeholder, onClick, icon: Icon, isDark }) {
+function PickerField({
+  id,
+  label,
+  value,
+  placeholder,
+  onClick,
+  icon: Icon,
+  isDark,
+  required = false,
+}) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(2px, .22vw, 4px)' }}>
       <label
@@ -387,6 +442,7 @@ function PickerField({ id, label, value, placeholder, onClick, icon: Icon, isDar
       </label>
       <button
         aria-haspopup="dialog"
+        aria-required={required}
         className={INPUT_CLASS}
         id={id}
         onClick={onClick}
@@ -426,22 +482,11 @@ export default function CreateEventModal({
   pickedLocationAddress,
   isResolvingLocationAddress,
   locationAddressLookupFailed,
+  onOpenMyEvents,
 }) {
   const [step, setStep] = useState(1);
   const [locationMode, setLocationMode] = useState('choose');
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    date: '',
-    time: '',
-    city: '',
-    address: '',
-    people: '',
-    type: '',
-    price: '',
-    comments: '',
-    photo: null,
-  });
+  const [formData, setFormData] = useState(() => ({ ...EMPTY_EVENT_FORM }));
   const [photoName, setPhotoName] = useState('');
   const [createdEvent, setCreatedEvent] = useState(null);
   const [picker, setPicker] = useState(null);
@@ -457,12 +502,23 @@ export default function CreateEventModal({
   const [draftMinute, setDraftMinute] = useState('00');
   const [draftPeriod, setDraftPeriod] = useState('AM');
   const [focusedField, setFocusedField] = useState('');
+  const [validationError, setValidationError] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setStep(1);
     setLocationMode('choose');
+    setFormData({ ...EMPTY_EVENT_FORM });
+    setPhotoName('');
+    setCreatedEvent(null);
+    setPicker(null);
+    setFocusedField('');
+    setValidationError('');
+    setDraftHour('10');
+    setDraftMinute('00');
+    setDraftPeriod('AM');
     onClose();
-  };
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -470,26 +526,25 @@ export default function CreateEventModal({
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
         if (picker) setPicker(null);
-        else {
-          setStep(1);
-          setLocationMode('choose');
-          onClose();
-        }
+        else handleClose();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose, picker]);
+  }, [handleClose, isOpen, picker]);
 
   if (!isOpen) return null;
 
   const handleChange = (field, value) => {
     setFormData((previous) => ({ ...previous, [field]: value }));
+    setValidationError('');
   };
 
   const openDatePicker = () => {
-    const selectedDate = parseEventDate(formData.date) || new Date();
+    const today = getTodayDate();
+    const savedDate = parseEventDate(formData.date);
+    const selectedDate = savedDate && savedDate >= today ? savedDate : today;
     setDraftDate(selectedDate);
     setCalendarMonth(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
     setPicker('date');
@@ -505,28 +560,114 @@ export default function CreateEventModal({
     setPicker('time');
   };
 
-  const handleNext = () => {
+  const validateStep = () => {
+    if (step === 1 && !formData.title.trim()) return 'Enter an event name to continue.';
+    const eventDate = parseEventDate(formData.date);
+    if (step === 2 && (!eventDate || !formData.time)) {
+      return 'Select both a date and time to continue.';
+    }
+    if (step === 2 && eventDate < getTodayDate()) {
+      return 'Choose today or a future date.';
+    }
+    if (step === 3) {
+      if (locationMode === 'manual' && (!formData.city.trim() || !formData.address.trim())) {
+        return 'Enter both a city and address, or pick a location on the map.';
+      }
+      if (
+        locationMode === 'choose' &&
+        (!pickedLocation ||
+          !initialCoords ||
+          !initialCoords.every((coordinate) => Number.isFinite(coordinate)))
+      ) {
+        return 'Pick a location on the map, or enter a city and address manually.';
+      }
+    }
+    if (step === 4) {
+      const participantLimit = Number(formData.people);
+      if (!Number.isInteger(participantLimit) || participantLimit < 1) {
+        return 'Enter a whole number of at least 1 for the participant limit.';
+      }
+      if (!formData.type) return 'Choose an event type to continue.';
+    }
+    return '';
+  };
+
+  const handleNext = async () => {
+    const error = validateStep();
+    if (error) {
+      setValidationError(error);
+      return;
+    }
+
     if (step < STEPS.length) {
+      setValidationError('');
       setStep((currentStep) => currentStep + 1);
       return;
     }
 
-    const newEvent = {
-      id: Date.now(),
-      ...formData,
-      title: formData.title || 'New Event',
-      address:
-        locationMode === 'choose'
-          ? pickedLocationAddress || formData.address
-          : formData.address,
-      category: formData.type || 'Other',
-      lat: initialCoords ? initialCoords[0] : 40.73061,
-      lng: initialCoords ? initialCoords[1] : -73.93524,
-    };
+    if (isCreating) return;
+    setIsCreating(true);
 
-    onCreatedEvent(newEvent);
-    setCreatedEvent(newEvent);
-    setStep('success');
+    try {
+      let coordinates = initialCoords;
+      if (locationMode === 'manual') {
+        const params = new URLSearchParams({
+          q: `${formData.address}, ${formData.city}`,
+          limit: '1',
+          lang: 'en',
+        });
+        const response = await fetch(`https://photon.komoot.io/api/?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error(`Manual location lookup failed with status ${response.status}`);
+        }
+        const result = await response.json();
+        const [longitude, latitude] = result.features?.[0]?.geometry?.coordinates || [];
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          setValidationError('Could not find that address. Check it or pick a location on the map.');
+          return;
+        }
+        coordinates = [latitude, longitude];
+      }
+
+      const image = formData.photo
+        ? await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              if (typeof reader.result === 'string') resolve(reader.result);
+              else reject(new Error('The selected event photo could not be read.'));
+            };
+            reader.onerror = () => reject(new Error('The selected event photo could not be read.'));
+            reader.readAsDataURL(formData.photo);
+          })
+        : '';
+      const newEvent = {
+        id: Date.now(),
+        ...formData,
+        title: formData.title.trim(),
+        city: locationMode === 'manual' ? formData.city.trim() : '',
+        address:
+          locationMode === 'choose'
+            ? pickedLocationAddress || `Selected location (${coordinates[0].toFixed(5)}, ${coordinates[1].toFixed(5)})`
+            : formData.address.trim(),
+        category: formData.type,
+        maxParticipants: Number(formData.people),
+        people: `${formData.people} persons`,
+        image,
+        photo: null,
+        lat: coordinates[0],
+        lng: coordinates[1],
+      };
+
+      onCreatedEvent(newEvent);
+      setCreatedEvent(newEvent);
+      setValidationError('');
+      setStep('success');
+    } catch (error) {
+      console.error('Unable to create event:', error);
+      setValidationError('The event could not be created. Please try again.');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const cardClass =
@@ -562,6 +703,7 @@ export default function CreateEventModal({
     backdropFilter: 'blur(3px)',
   };
   const dateParts = getLocalDateParts(draftDate);
+  const today = getTodayDate();
   const monthFirstDay = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
   const monthOffset = (monthFirstDay.getDay() + 6) % 7;
   const daysInMonth = new Date(
@@ -629,7 +771,7 @@ export default function CreateEventModal({
               {createdEvent?.address || createdEvent?.city}
             </p>
             <p className="pt-1 text-[11px] text-[#858991] dark:text-white/45">
-              {createdEvent?.people} · {createdEvent?.price}
+              {createdEvent?.people} · {createdEvent?.womenOnly ? 'Women only' : 'Open to everyone'}
             </p>
           </div>
           <div className="mt-5">
@@ -648,7 +790,10 @@ export default function CreateEventModal({
             </button>
             <button
               className="h-9 rounded-full bg-gradient-to-r from-[#ff7fc0] to-[#ff813e] text-xs font-semibold text-[#171717] transition hover:brightness-105"
-              onClick={handleClose}
+              onClick={() => {
+                handleClose();
+                onOpenMyEvents?.();
+              }}
               type="button"
             >
               My Events
@@ -753,10 +898,11 @@ export default function CreateEventModal({
               <>
                 <Field
                   id="event-title"
-                  label="Event Name"
+                  label="Event Name · Required"
                   isDark={isDark}
                   onChange={(value) => handleChange('title', value)}
                   placeholder="Coffee & conversations"
+                  required
                   value={formData.title}
                 />
                 <div>
@@ -765,7 +911,7 @@ export default function CreateEventModal({
                     htmlFor="event-description"
                     style={{ display: 'block', margin: '0 0 3px', color: isDark ? '#a6abb4' : '#686b73', fontSize: 'clamp(10px, .58vw, 11px)', lineHeight: 1.35 }}
                   >
-                    Description
+                    Description · Optional
                   </label>
                   <textarea
                     className="min-h-20 w-full resize-y rounded-xl border border-transparent bg-[#f1f3f5] px-4 py-2.5 text-xs text-[#262626] outline-none transition placeholder:text-[#858991] focus:border-[#ff7fc0] focus:ring-2 focus:ring-[#ff7fc0]/20 dark:bg-[#202630] dark:text-white dark:placeholder:text-white/45"
@@ -843,20 +989,22 @@ export default function CreateEventModal({
               <>
                 <PickerField
                   id="event-date"
-                  label="Date"
+                  label="Date · Required"
                   icon={CalendarDays}
                   isDark={isDark}
                   onClick={openDatePicker}
                   placeholder="Select date"
+                  required
                   value={formData.date}
                 />
                 <PickerField
                   id="event-time"
-                  label="Time"
+                  label="Time · Required"
                   icon={Clock3}
                   isDark={isDark}
                   onClick={openTimePicker}
                   placeholder="Select time"
+                  required
                   value={formData.time}
                 />
               </>
@@ -923,18 +1071,20 @@ export default function CreateEventModal({
                   <>
                     <Field
                       id="event-city"
-                      label="City"
+                      label="City · Required"
                       isDark={isDark}
                       onChange={(value) => handleChange('city', value)}
                       placeholder="Poznan, Poland"
+                      required
                       value={formData.city}
                     />
                     <Field
                       id="event-address"
-                      label="Address"
+                      label="Address · Required"
                       isDark={isDark}
                       onChange={(value) => handleChange('address', value)}
                       placeholder="Avenida, Poznan Glowny"
+                      required
                       value={formData.address}
                     />
                   </>
@@ -973,28 +1123,56 @@ export default function CreateEventModal({
               <>
                 <Field
                   id="event-people"
-                  label="Up To"
+                  label="Up To · Required"
                   isDark={isDark}
-                  onChange={(value) => handleChange('people', value)}
+                  onChange={(value) => handleChange('people', value.replace(/\D/g, ''))}
                   placeholder="6 persons"
+                  inputMode="numeric"
+                  required
                   value={formData.people}
                 />
                 <SelectField
                   id="event-type"
-                  label="Type of Event"
+                  label="Type of Event · Required"
                   isDark={isDark}
                   onChange={(value) => handleChange('type', value)}
                   options={EVENT_TYPES}
+                  required
                   value={formData.type}
                 />
-                <Field
-                  id="event-price"
-                  label="Price"
-                  isDark={isDark}
-                  onChange={(value) => handleChange('price', value)}
-                  placeholder="Free"
-                  value={formData.price}
-                />
+                <button
+                  aria-checked={formData.womenOnly}
+                  aria-label="Women only"
+                  className={`flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition ${
+                    formData.womenOnly
+                      ? 'border-[#e65a9c] bg-[#fce8f2] dark:border-[#ff7fc0] dark:bg-[#382a35]'
+                      : 'border-[#e8e9ec] bg-[#f7f8f9] hover:border-[#ff7fc0] dark:border-white/15 dark:bg-[#202630]'
+                  }`}
+                  onClick={() => handleChange('womenOnly', !formData.womenOnly)}
+                  role="switch"
+                  type="button"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-xs font-medium text-[#262626] dark:text-white">
+                      Women only
+                    </span>
+                    <span className="mt-0.5 block text-[10px] text-[#777] dark:text-white/55">
+                      {formData.womenOnly ? 'Visible only to women' : 'Optional audience setting'}
+                    </span>
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+                      formData.womenOnly ? 'bg-[#e65a9c]' : 'bg-[#b8bbc2] dark:bg-[#4a515b]'
+                    }`}
+                  >
+                    <span
+                      className={`size-5 rounded-full bg-white shadow transition-transform ${
+                        formData.womenOnly ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </span>
+                </button>
               </>
             )}
 
@@ -1005,7 +1183,7 @@ export default function CreateEventModal({
                   htmlFor="event-comments"
                   style={{ display: 'block', margin: '0 0 3px', color: isDark ? '#a6abb4' : '#686b73', fontSize: 'clamp(10px, .58vw, 11px)', lineHeight: 1.35 }}
                 >
-                  Any Comments
+                  Any Comments · Optional
                 </label>
                 <textarea
                   className="min-h-24 w-full resize-y rounded-xl border border-transparent bg-[#f1f3f5] px-4 py-3 text-xs leading-5 text-[#262626] outline-none transition placeholder:text-[#858991] focus:border-[#ff7fc0] focus:ring-2 focus:ring-[#ff7fc0]/20 dark:bg-[#202630] dark:text-white dark:placeholder:text-white/45"
@@ -1034,6 +1212,11 @@ export default function CreateEventModal({
             )}
           </div>
 
+          {validationError && (
+            <p aria-live="polite" className="mt-3 text-xs text-red-600 dark:text-red-300">
+              {validationError}
+            </p>
+          )}
           <div
             className="mt-4 flex items-center justify-between gap-3"
             style={{
@@ -1046,7 +1229,11 @@ export default function CreateEventModal({
           >
             <button
               className="h-9 min-w-[78px] rounded-full border border-[#e5e5e5] px-4 text-[11px] font-medium text-[#333] transition hover:bg-[#f5f5f5] dark:border-white/20 dark:text-white dark:hover:bg-white/10"
-              onClick={step === 1 ? handleClose : () => setStep((currentStep) => currentStep - 1)}
+              onClick={() => {
+                setValidationError('');
+                if (step === 1) handleClose();
+                else setStep((currentStep) => currentStep - 1);
+              }}
               style={{
                 boxSizing: 'border-box',
                 minWidth: 'clamp(72px, 4.14vw, 78px)',
@@ -1062,10 +1249,11 @@ export default function CreateEventModal({
               }}
               type="button"
             >
-              Cancel
+              Back
             </button>
             <button
               className="h-9 min-w-[112px] rounded-full bg-gradient-to-r from-[#ff7fc0] to-[#ff813e] px-5 text-[11px] font-semibold text-[#171717] shadow-sm transition hover:brightness-105 active:scale-[0.98]"
+              disabled={isCreating}
               onClick={handleNext}
               style={{
                 boxSizing: 'border-box',
@@ -1082,7 +1270,7 @@ export default function CreateEventModal({
               }}
               type="button"
             >
-              Continue
+              {isCreating ? 'Creating…' : step === STEPS.length ? 'Create event' : 'Continue'}
             </button>
           </div>
         </section>
@@ -1158,9 +1346,16 @@ export default function CreateEventModal({
                     day === dateParts.day &&
                     calendarMonth.getMonth() === dateParts.month &&
                     calendarMonth.getFullYear() === dateParts.year;
+                  const dayDate = new Date(
+                    calendarMonth.getFullYear(),
+                    calendarMonth.getMonth(),
+                    day,
+                  );
+                  const isPastDate = dayDate < today;
 
                   return (
                     <button
+                      disabled={isPastDate}
                       aria-label={new Date(
                         calendarMonth.getFullYear(),
                         calendarMonth.getMonth(),
@@ -1173,7 +1368,9 @@ export default function CreateEventModal({
                       })}
                       aria-pressed={isSelected}
                       key={day}
-                      onClick={() => setDraftDate(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day))}
+                      onClick={() => {
+                        if (!isPastDate) setDraftDate(dayDate);
+                      }}
                       style={{
                         width: 34,
                         height: 34,
@@ -1181,10 +1378,13 @@ export default function CreateEventModal({
                         border: 0,
                         borderRadius: '50%',
                         background: isSelected ? 'linear-gradient(135deg, #ff7fc0, #ff69b4)' : 'transparent',
-                        color: isSelected ? '#ffffff' : isDark ? '#ffffff' : '#171717',
+                        color: isPastDate
+                          ? isDark ? 'rgba(255,255,255,.25)' : '#b9bbc0'
+                          : isSelected ? '#ffffff' : isDark ? '#ffffff' : '#171717',
                         fontSize: 12,
                         fontWeight: isSelected ? 600 : 400,
-                        cursor: 'pointer',
+                        cursor: isPastDate ? 'not-allowed' : 'pointer',
+                        opacity: isPastDate ? 0.55 : 1,
                       }}
                       type="button"
                     >

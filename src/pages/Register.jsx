@@ -7,10 +7,7 @@ import Step5Interests from "../components/registration/steps/Step5Interests";
 import Step6Instagram from "../components/registration/steps/Step6Instagram";
 import Step7Location from "../components/registration/steps/Step7Location";
 import Step8Notifications from "../components/registration/steps/Step8Notifications";
-import {
-  RegistrationHeader,
-  ThemeToggle,
-} from "../components/registration/RegistrationControls";
+import { RegistrationHeader } from "../components/registration/RegistrationControls";
 
 const initialFormState = {
   email: "",
@@ -84,6 +81,8 @@ const Register = () => {
         totalSteps={totalSteps}
         onBack={handlePrevStep}
         onReset={handleResetToStep1}
+        isDark={isDark}
+        onToggleTheme={() => setIsDark((prev) => !prev)}
       />
 
       {/* Белая/Тёмная карточка шага */}
@@ -149,7 +148,6 @@ const Register = () => {
         )}
       </div>
 
-      <ThemeToggle isDark={isDark} onToggle={() => setIsDark((prev) => !prev)} />
     </div>
   );
 };

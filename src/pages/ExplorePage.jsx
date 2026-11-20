@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ExploreMap from '../components/ExploreMap';
 import CreateEventModal from '../components/CreateEventModal';
 import AppHeader from '../components/AppHeader';
-import { Plus, MapPin, Sun, Moon } from 'lucide-react';
+import { Plus, MapPin } from 'lucide-react';
 import { DEMO_EVENTS, POZNAN_CENTER } from '../data/demoEvents';
 import EventDetailsPanel from '../components/events/EventDetailsPanel';
 import EventJoinedDialog from '../components/events/EventJoinedDialog';
 import {
   getEventCapacity,
+  getEventDate,
   getEventParticipantCount,
 } from '../components/events/eventUtils';
+import { DEMO_FRIENDS } from '../data/demoFriends';
+
+const DEMO_FRIEND_NAMES = new Set(DEMO_FRIENDS.map((friend) => friend.name.toLowerCase()));
 
 export default function ExplorePage({
   isDark: propIsDark,
@@ -40,15 +44,78 @@ export default function ExplorePage({
     else document.documentElement.classList.remove('dark');
   }, [isDark]);
 
-  const [userLocation, setUserLocation] = useState(null);
+  const [mapCenter, setMapCenter] = useState(POZNAN_CENTER);
   const [localEvents, setLocalEvents] = useState(DEMO_EVENTS);
   const events = propEvents ?? localEvents;
+  const [filters, setFilters] = useState({
+    category: '',
+    friendsOnly: false,
+    womenOnly: false,
+    startDate: '',
+    endDate: '',
+  });
   const [previewEvent, setPreviewEvent] = useState(null);
   const [activeEvent, setActiveEvent] = useState(null);
   const [participantCounts, setParticipantCounts] = useState({});
   const [localJoinedEventIds, setLocalJoinedEventIds] = useState(() => new Set());
   const joinedEventIds = propJoinedEventIds ?? localJoinedEventIds;
   const [joinedEvent, setJoinedEvent] = useState(null);
+  const filteredEvents = events.filter((event) => {
+    if (filters.category && (event.category || event.type) !== filters.category) return false;
+    if (
+      filters.friendsOnly &&
+      !DEMO_FRIEND_NAMES.has(String(event.host || '').trim().toLowerCase())
+    ) {
+      return false;
+    }
+    if (filters.womenOnly && !event.womenOnly) return false;
+
+    if (filters.startDate || filters.endDate) {
+      const eventDate = getEventDate(event);
+      if (!eventDate) return false;
+      const startDate = filters.startDate ? new Date(`${filters.startDate}T00:00:00`) : null;
+      const endDate = filters.endDate ? new Date(`${filters.endDate}T00:00:00`) : null;
+      eventDate.setHours(0, 0, 0, 0);
+      if (startDate && eventDate < startDate) return false;
+      if (endDate && eventDate > endDate) return false;
+    }
+
+    return true;
+  });
+
+  const handleEventFilterChange = (field, value) => {
+    setFilters((currentFilters) => {
+      const nextFilters = { ...currentFilters, [field]: value };
+      if (
+        field === 'startDate' &&
+        nextFilters.endDate &&
+        value > nextFilters.endDate
+      ) {
+        nextFilters.endDate = value;
+      } else if (
+        field === 'endDate' &&
+        nextFilters.startDate &&
+        value < nextFilters.startDate
+      ) {
+        nextFilters.startDate = value;
+      }
+      return nextFilters;
+    });
+    setPreviewEvent(null);
+    setActiveEvent(null);
+  };
+
+  const handleClearEventFilters = () => {
+    setFilters({
+      category: '',
+      friendsOnly: false,
+      womenOnly: false,
+      startDate: '',
+      endDate: '',
+    });
+    setPreviewEvent(null);
+    setActiveEvent(null);
+  };
 
   // Модальное окно пошагового создания
   const [isLocallyModalOpen, setIsLocallyModalOpen] = useState(false);
@@ -59,6 +126,17 @@ export default function ExplorePage({
   const [pickedEventAddress, setPickedEventAddress] = useState('');
   const [isResolvingEventAddress, setIsResolvingEventAddress] = useState(false);
   const [eventAddressLookupFailed, setEventAddressLookupFailed] = useState(false);
+  const [isCreateHintVisible, setIsCreateHintVisible] = useState(false);
+  const createHintTimeoutRef = useRef(null);
+
+  useEffect(
+    () => () => {
+      if (createHintTimeoutRef.current) {
+        clearTimeout(createHintTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!isResolvingEventAddress || !tempCoords) return undefined;
@@ -67,7 +145,7 @@ export default function ExplorePage({
     const [lat, lon] = tempCoords;
 
     fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&accept-language=en`,
       { signal: controller.signal },
     )
       .then((response) => {
@@ -106,36 +184,46 @@ export default function ExplorePage({
   const getUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => setUserLocation([position.coords.latitude, position.coords.longitude]),
+        (position) => setMapCenter([position.coords.latitude, position.coords.longitude]),
         (error) => console.warn('Геолокация недоступна:', error.message)
       );
     }
   };
 
   const handleMapClick = (latlng) => {
-    setPreviewEvent(null);
-    setActiveEvent(null);
-    const coordinates = [latlng.lat, latlng.lng];
-    setTempCoords(coordinates);
-    setPickedEventAddress('');
-    setEventAddressLookupFailed(false);
-    setIsResolvingEventAddress(true);
-
     if (isPickingEventLocation) {
+      const coordinates = [latlng.lat, latlng.lng];
+      setTempCoords(coordinates);
+      setPickedEventAddress('');
+      setEventAddressLookupFailed(false);
+      setIsResolvingEventAddress(true);
       setIsPickingEventLocation(false);
       setHasPickedEventLocation(true);
       setIsLocallyModalOpen(true);
       return;
     }
 
-    setHasPickedEventLocation(true);
-    setIsLocallyModalOpen(true);
+    setPreviewEvent(null);
+    setActiveEvent(null);
+    setIsCreateHintVisible(true);
+    if (createHintTimeoutRef.current) {
+      clearTimeout(createHintTimeoutRef.current);
+    }
+    createHintTimeoutRef.current = window.setTimeout(() => {
+      setIsCreateHintVisible(false);
+      createHintTimeoutRef.current = null;
+    }, 2200);
   };
 
   const handleOpenAddModal = () => {
+    setIsCreateHintVisible(false);
+    if (createHintTimeoutRef.current) {
+      clearTimeout(createHintTimeoutRef.current);
+      createHintTimeoutRef.current = null;
+    }
     setPreviewEvent(null);
     setActiveEvent(null);
-    setTempCoords(userLocation || POZNAN_CENTER);
+    setTempCoords(mapCenter);
     setHasPickedEventLocation(false);
     setPickedEventAddress('');
     setIsResolvingEventAddress(false);
@@ -153,6 +241,13 @@ export default function ExplorePage({
     setIsPickingEventLocation(false);
     setIsLocallyModalOpen(true);
     onCreateEventRequestHandled?.();
+  };
+
+  const handleOpenMyEvents = () => {
+    setIsLocallyModalOpen(false);
+    onCreateEventRequestHandled?.();
+    setIsPickingEventLocation(false);
+    changeTab('My Events');
   };
 
   const handleCreatedEvent = (newEvent) => {
@@ -194,8 +289,8 @@ export default function ExplorePage({
       <div className="absolute inset-0 z-0">
         <ExploreMap 
           isDark={isDark} 
-          center={userLocation || POZNAN_CENTER}
-          events={events}
+          center={mapCenter}
+          events={filteredEvents}
           participantCounts={participantCounts}
           joinedEventIds={joinedEventIds}
           previewEvent={previewEvent}
@@ -230,6 +325,16 @@ export default function ExplorePage({
           activeTab={activeTab}
           onTabChange={changeTab}
           isDark={isDark}
+          action="filters"
+          onToggleTheme={toggleTheme}
+          filters={filters}
+          onFilterChange={handleEventFilterChange}
+          onClearFilters={handleClearEventFilters}
+          onCitySelect={(coordinates) => {
+            setMapCenter(coordinates);
+            setPreviewEvent(null);
+            setActiveEvent(null);
+          }}
         />
 
         {/* НАЖАТИЕ НА ЭТОТ РОЗОВЫЙ ПЛЮСИК ОТКРЫВАЕТ ВЕСЬ МАСТЕР 1/5 */}
@@ -239,6 +344,38 @@ export default function ExplorePage({
         >
           <Plus className="w-6 h-6 stroke-[2.5]" />
         </button>
+        <div
+          aria-hidden={!isCreateHintVisible}
+          aria-live="polite"
+          className={`pointer-events-none fixed top-[152px] right-14 z-30 flex flex-col items-end gap-1 transition-[opacity,transform] duration-500 ease-out ${
+            isCreateHintVisible ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'
+          }`}
+          role="status"
+        >
+          <svg
+            aria-hidden="true"
+            className="absolute -top-10 right-[-6px] h-10 w-10 animate-pulse drop-shadow-md"
+            fill="none"
+            viewBox="0 0 40 40"
+          >
+            <defs>
+              <linearGradient id="create-event-arrow-gradient" x1="4" y1="36" x2="34" y2="5">
+                <stop stopColor="#ff813e" />
+                <stop offset="1" stopColor="#ff7fc0" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M4 36C7 23 17 10 34 5M22 5H34V17"
+              stroke="url(#create-event-arrow-gradient)"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="3"
+            />
+          </svg>
+          <div className="rounded-full border border-[#ff7fc0]/30 bg-white/95 px-4 py-2 text-xs font-semibold text-[#262626] shadow-xl backdrop-blur-md dark:bg-[#11161D]/95 dark:text-white">
+            Tap + to create an event
+          </div>
+        </div>
 
         {/* ПЛАШКА ЛОКАЦИИ */}
         <div className="mt-[96px] pointer-events-auto w-80 p-5 rounded-3xl bg-white/95 dark:bg-[#11161D]/90 border border-gray-100 dark:border-white/10 shadow-2xl backdrop-blur-md flex gap-3 transition-colors">
@@ -254,9 +391,6 @@ export default function ExplorePage({
               <button onClick={getUserLocation} className="text-gray-900 dark:text-white underline hover:opacity-80 cursor-pointer">
                 Use my location
               </button>
-              <button className="text-gray-500 dark:text-white/60 hover:underline cursor-pointer">
-                Enter manually
-              </button>
             </div>
           </div>
         </div>
@@ -267,27 +401,11 @@ export default function ExplorePage({
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 dark:bg-[#11161D]/80 border border-gray-100 dark:border-white/10 backdrop-blur-md shadow-md transition-colors">
               <span className="w-2 h-2 rounded-full bg-[#ff7fc0] animate-pulse"></span>
               <span className="font-medium text-gray-900 dark:text-white">
-                {events.length} {events.length === 1 ? 'event' : 'events'} in this area
+                {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'} in this area
               </span>
               <span className="text-gray-400 dark:text-white/40">Select a dot or click map to add</span>
             </div>
 
-            <button 
-              onClick={toggleTheme}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/90 dark:bg-[#11161D]/80 border border-gray-100 dark:border-white/10 backdrop-blur-md shadow-md text-xs font-semibold text-gray-900 dark:text-white hover:scale-105 transition-all cursor-pointer"
-            >
-              {isDark ? (
-                <>
-                  <Sun className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Light</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="w-3.5 h-3.5 text-indigo-500" />
-                  <span>Dark</span>
-                </>
-              )}
-            </button>
           </div>
 
           <div className="px-3 py-1.5 rounded-full bg-white/90 dark:bg-[#11161D]/80 border border-gray-100 dark:border-white/10 backdrop-blur-md shadow-md font-mono text-[11px]">
@@ -321,6 +439,7 @@ export default function ExplorePage({
           setIsPickingEventLocation(false);
         }}
         onCreatedEvent={handleCreatedEvent}
+        onOpenMyEvents={handleOpenMyEvents}
         initialCoords={tempCoords}
         onPickLocation={handlePickEventLocation}
         pickedLocation={hasPickedEventLocation}
